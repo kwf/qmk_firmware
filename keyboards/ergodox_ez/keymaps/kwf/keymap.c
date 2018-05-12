@@ -1,0 +1,263 @@
+#include "ergodox_ez.h"
+#include "debug.h"
+#include "action_layer.h"
+#include "version.h"
+
+
+#include "keymap_german.h"
+
+#include "keymap_nordic.h"
+
+
+
+enum custom_keycodes {
+  PLACEHOLDER = SAFE_RANGE, // can always be here
+  EPRM,
+  VRSN,
+  RGB_SLD,
+
+  // Keycodes for custom capitalization
+  LPAREN,  // '(' and '['
+  RPAREN,  // ')' and ']'
+  LANGLE,  // '<' and '{'
+  RANGLE,  // '>' and '}'
+  PERIOD,  // '.' and ':'
+  COMMA,   // ',' and ';'
+  SLASH,   // '/' and (em-dash)
+  ATSIGN,  // '@' and '#'
+  CARET,   // '^' and '&'
+  DOLLAR,  // '$' and '$' (TODO: put something else here?)
+
+};
+
+const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+
+  [0] = KEYMAP(KC_BSLASH, KC_1,      KC_2,      KC_3,      KC_4,      KC_5,      MO(1),
+               LPAREN,    KC_Q,      KC_W,      KC_E,      KC_R,      KC_T,      KC_EXLM,
+               KC_ESCAPE, KC_A,      KC_S,      KC_D,      KC_F,      KC_G,
+               LANGLE,    KC_Z,      KC_X,      KC_C,      KC_V,      KC_B,      PERIOD,
+               KC_LCTL,   KC_LALT,   KC_LGUI,   KC_EQUAL,  KC_QUOTE,
+
+                                                                   ALL_T(KC_NO), KC_LSHIFT,
+                                                                                 KC_LCTL,
+                                                             KC_LSHIFT, KC_LGUI, KC_LALT,
+
+               MO(1),     KC_6,      KC_7,      KC_8,      KC_9,      KC_0,      SLASH,
+               KC_QUES,   KC_Y,      KC_U,      KC_I,      KC_O,      KC_P,      RPAREN,
+                          KC_H,      KC_J,      KC_K,      KC_L,      ATSIGN,    KC_ENTER,
+               COMMA,     KC_N,      KC_M,      CARET,     DOLLAR,    KC_UP,     RANGLE,
+                                     KC_MINUS,  KC_GRAVE,  KC_LEFT,   KC_DOWN,   KC_RIGHT,
+
+               KC_LALT, KC_DELETE,
+               KC_LCTL,
+               KC_TAB,  KC_BSPACE, KC_SPACE),
+
+  [1] = KEYMAP(RGB_HUI,KC_1,KC_2,KC_3,KC_KP_PLUS,KC_TRANSPARENT,KC_TRANSPARENT,
+               RGB_HUD,KC_4,KC_5,KC_6,KC_KP_MINUS,KC_TRANSPARENT,KC_TAB,
+               RGB_VAI,KC_7,KC_8,KC_9,KC_KP_ASTERISK,KC_TRANSPARENT,
+               RGB_VAD,KC_KP_0,KC_0,KC_KP_DOT,KC_KP_SLASH,KC_TRANSPARENT,KC_KP_ENTER,
+               RGB_TOG,KC_DLR,KC_PERC,KC_HASH,KC_CIRC,
+
+               ALL_T(KC_NO),KC_LSHIFT,KC_LCTL,KC_LSHIFT,KC_LGUI,KC_LALT,
+
+               KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_MEDIA_PREV_TRACK,KC_MEDIA_NEXT_TRACK,KC_MEDIA_PLAY_PAUSE,
+               KC_UP,KC_LEFT,KC_RIGHT,KC_TRANSPARENT,KC_AUDIO_VOL_DOWN,KC_AUDIO_VOL_UP,KC_AUDIO_MUTE,
+               LALT(KC_LEFT),LALT(KC_RIGHT),KC_TRANSPARENT,KC_MS_BTN4,KC_MS_BTN3,KC_MS_BTN5,
+               KC_DOWN,LGUI(KC_LEFT),LGUI(KC_RIGHT),KC_MS_WH_UP,KC_MS_BTN1,KC_MS_UP,KC_MS_BTN2,
+               KC_TRANSPARENT,KC_MS_WH_DOWN,KC_MS_LEFT,KC_MS_DOWN,KC_MS_RIGHT,
+
+               KC_LALT,KC_DELETE,KC_LCTL,KC_TAB,KC_BSPACE,KC_SPACE),
+
+};
+
+const uint16_t PROGMEM fn_actions[] = {
+  [1] = ACTION_LAYER_TAP_TOGGLE(1)
+};
+
+// leaving this in place for compatibilty with old keymaps cloned and re-compiled.
+const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt)
+{
+      switch(id) {
+        case 0:
+        if (record->event.pressed) {
+          SEND_STRING (QMK_KEYBOARD "/" QMK_KEYMAP " @ " QMK_VERSION);
+        }
+        break;
+      }
+    return MACRO_NONE;
+};
+
+void matrix_init_user(void) {
+#ifdef RGBLIGHT_COLOR_LAYER_0
+  rgblight_setrgb(RGBLIGHT_COLOR_LAYER_0);
+#endif
+};
+
+// keep track of modifier state
+static bool shift_down = false;
+static bool ctrl_down  = false;
+static bool alt_down   = false;
+static bool cmd_down   = false;
+
+// Track whether a key is up or down by updating a boolean variable
+void track_key(uint16_t keycode, bool *flag,
+               uint16_t match, keyrecord_t *record) {
+    if (keycode == match) {
+        *flag = record->event.pressed;
+    }
+}
+
+// Sends the first string if shift up, the second if shift down,
+// but neither if the keypress was an upstroke.
+bool capitalized(char *no, char *yes, keyrecord_t *record) {
+  if (record->event.pressed) {
+    if (shift_down) {
+      SEND_STRING(SS_UP(X_LSHIFT));
+      send_string(yes);
+      SEND_STRING(SS_DOWN(X_LSHIFT));
+    } else {
+      send_string(no);
+    }
+  }
+  return false;
+}
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+
+  // track whether modifiers are down
+  track_key(KC_LSHIFT, &shift_down, keycode, record);
+  track_key(KC_LCTL,   &ctrl_down,  keycode, record);
+  track_key(KC_LALT,   &alt_down,   keycode, record);
+  track_key(KC_LGUI,   &cmd_down,   keycode, record);
+
+  switch (keycode) {
+
+    // Keys with custom capitalization
+    case LPAREN:
+      return capitalized("(", "[", record);
+      break;
+    case RPAREN:
+      return capitalized(")", "]", record);
+      break;
+    case LANGLE:
+      return capitalized("<", "{", record);
+      break;
+    case RANGLE:
+      return capitalized(">", "}", record);
+      break;
+    case PERIOD:
+      return capitalized(".", ":", record);
+      break;
+    case COMMA:
+      return capitalized(",", ";", record);
+      break;
+    case ATSIGN:
+      return capitalized("@", "#", record);
+      break;
+    case CARET:
+      return capitalized("^", "&", record);
+      break;
+    case DOLLAR:
+      return capitalized("$", "$", record);
+      break;
+    case SLASH:
+      if (record->event.pressed) {
+        if (!shift_down) {
+          SEND_STRING("/");
+        } else {
+          SEND_STRING(SS_LALT(SS_LSFT("-"))); // em-dash
+        }
+      }
+      return false;
+      break;
+
+    case EPRM:
+      if (record->event.pressed) {
+        eeconfig_init();
+      }
+      return false;
+      break;
+    case VRSN:
+      if (record->event.pressed) {
+        SEND_STRING (QMK_KEYBOARD "/" QMK_KEYMAP " @ " QMK_VERSION);
+      }
+      return false;
+      break;
+    case RGB_SLD:
+      if (record->event.pressed) {
+        rgblight_mode(1);
+      }
+      return false;
+      break;
+
+  }
+  return true;
+}
+
+uint32_t layer_state_set_user(uint32_t state) {
+
+    uint8_t layer = biton32(state);
+
+    ergodox_board_led_off();
+    ergodox_right_led_1_off();
+    ergodox_right_led_2_off();
+    ergodox_right_led_3_off();
+    switch (layer) {
+      case 0:
+        #ifdef RGBLIGHT_COLOR_LAYER_0
+          rgblight_setrgb(RGBLIGHT_COLOR_LAYER_0);
+        #endif
+        break;
+      case 1:
+        ergodox_right_led_1_on();
+        #ifdef RGBLIGHT_COLOR_LAYER_1
+          rgblight_setrgb(RGBLIGHT_COLOR_LAYER_1);
+        #endif
+        break;
+      case 2:
+        ergodox_right_led_2_on();
+        #ifdef RGBLIGHT_COLOR_LAYER_2
+          rgblight_setrgb(RGBLIGHT_COLOR_LAYER_2);
+        #endif
+        break;
+      case 3:
+        ergodox_right_led_3_on();
+        #ifdef RGBLIGHT_COLOR_LAYER_3
+          rgblight_setrgb(RGBLIGHT_COLOR_LAYER_3);
+        #endif
+        break;
+      case 4:
+        ergodox_right_led_1_on();
+        ergodox_right_led_2_on();
+        #ifdef RGBLIGHT_COLOR_LAYER_4
+          rgblight_setrgb(RGBLIGHT_COLOR_LAYER_4);
+        #endif
+        break;
+      case 5:
+        ergodox_right_led_1_on();
+        ergodox_right_led_3_on();
+        #ifdef RGBLIGHT_COLOR_LAYER_5
+          rgblight_setrgb(RGBLIGHT_COLOR_LAYER_5);
+        #endif
+        break;
+      case 6:
+        ergodox_right_led_2_on();
+        ergodox_right_led_3_on();
+        #ifdef RGBLIGHT_COLOR_LAYER_6
+          rgblight_setrgb(RGBLIGHT_COLOR_LAYER_6);
+        #endif
+        break;
+      case 7:
+        ergodox_right_led_1_on();
+        ergodox_right_led_2_on();
+        ergodox_right_led_3_on();
+        #ifdef RGBLIGHT_COLOR_LAYER_7
+          rgblight_setrgb(RGBLIGHT_COLOR_LAYER_6);
+        #endif
+        break;
+      default:
+        break;
+    }
+    return state;
+
+};
