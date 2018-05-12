@@ -52,21 +52,25 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                KC_LCTL,
                KC_TAB,  KC_BSPACE, KC_SPACE),
 
-  [1] = KEYMAP(RGB_HUI,KC_1,KC_2,KC_3,KC_KP_PLUS,KC_TRANSPARENT,KC_TRANSPARENT,
-               RGB_HUD,KC_4,KC_5,KC_6,KC_KP_MINUS,KC_TRANSPARENT,KC_TAB,
-               RGB_VAI,KC_7,KC_8,KC_9,KC_KP_ASTERISK,KC_TRANSPARENT,
-               RGB_VAD,KC_KP_0,KC_0,KC_KP_DOT,KC_KP_SLASH,KC_TRANSPARENT,KC_KP_ENTER,
-               RGB_TOG,KC_DLR,KC_PERC,KC_HASH,KC_CIRC,
+  [1] = KEYMAP(RGB_HUI, KC_1,    KC_2,    KC_3,      KC_KP_PLUS,     KC_NO,KC_NO,
+               RGB_HUD, KC_4,    KC_5,    KC_6,      KC_KP_MINUS,    KC_NO,KC_TAB,
+               RGB_VAI, KC_7,    KC_8,    KC_9,      KC_KP_ASTERISK, KC_NO,
+               RGB_VAD, KC_KP_0, KC_0,    KC_KP_DOT, KC_KP_SLASH,    KC_NO,KC_KP_ENTER,
+               RGB_TOG, KC_DLR,  KC_PERC, KC_HASH,   KC_CIRC,
 
-               ALL_T(KC_NO),KC_LSHIFT,KC_LCTL,KC_LSHIFT,KC_LGUI,KC_LALT,
+                                                       ALL_T(KC_NO), KC_LSHIFT,
+                                                                     KC_LCTL,
+                                                 KC_LSHIFT, KC_LGUI, KC_LALT,
 
-               KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_MEDIA_PREV_TRACK,KC_MEDIA_NEXT_TRACK,KC_MEDIA_PLAY_PAUSE,
-               KC_UP,KC_LEFT,KC_RIGHT,KC_TRANSPARENT,KC_AUDIO_VOL_DOWN,KC_AUDIO_VOL_UP,KC_AUDIO_MUTE,
-               LALT(KC_LEFT),LALT(KC_RIGHT),KC_TRANSPARENT,KC_MS_BTN4,KC_MS_BTN3,KC_MS_BTN5,
-               KC_DOWN,LGUI(KC_LEFT),LGUI(KC_RIGHT),KC_MS_WH_UP,KC_MS_BTN1,KC_MS_UP,KC_MS_BTN2,
-               KC_TRANSPARENT,KC_MS_WH_DOWN,KC_MS_LEFT,KC_MS_DOWN,KC_MS_RIGHT,
+               KC_NO,         KC_NO,          KC_NO,          KC_NO,         KC_MEDIA_PREV_TRACK, KC_MEDIA_NEXT_TRACK, KC_MEDIA_PLAY_PAUSE,
+               KC_UP,         KC_LEFT,        KC_RIGHT,       KC_NO,         KC_AUDIO_VOL_DOWN,   KC_AUDIO_VOL_UP,     KC_AUDIO_MUTE,
+                              LALT(KC_LEFT),  LALT(KC_RIGHT), KC_NO,         KC_MS_BTN4,          KC_MS_BTN3,          KC_MS_BTN5,
+               KC_DOWN,       LGUI(KC_LEFT),  LGUI(KC_RIGHT), KC_MS_WH_UP,   KC_MS_BTN1,          KC_MS_UP,            KC_MS_BTN2,
+                                              KC_NO,          KC_MS_WH_DOWN, KC_MS_LEFT,          KC_MS_DOWN,          KC_MS_RIGHT,
 
-               KC_LALT,KC_DELETE,KC_LCTL,KC_TAB,KC_BSPACE,KC_SPACE),
+               KC_LALT, KC_DELETE,
+               KC_LCTL,
+               KC_TAB, KC_BSPACE, KC_SPACE),
 
 };
 
