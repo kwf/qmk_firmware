@@ -111,17 +111,64 @@ void track_key(uint16_t keycode, bool *flag,
     }
 }
 
-// Sends the first string if shift up, the second if shift down,
-// but neither if the keypress was an upstroke.
-bool capitalized(char *no, char *yes, keyrecord_t *record) {
-  if (record->event.pressed) {
-    if (shift_down) {
-      SEND_STRING(SS_UP(X_LSHIFT));
-      send_string(yes);
-      SEND_STRING(SS_DOWN(X_LSHIFT));
+// Determines if the keycode corresponding to an ASCII character requires
+// shift to be pressed when it is sent
+bool is_shifted_char(char ascii_code) {
+  return pgm_read_byte(&ascii_to_shift_lut[(uint8_t)ascii_code]);
+}
+
+// Returns the keycode corresponding to an ASCII character (may require shift
+// to be pressed to correctly send it, see is_shifted_char)
+uint16_t keycode(char ascii_code) {
+  return pgm_read_byte(&ascii_to_keycode_lut[(uint8_t)ascii_code]);
+}
+
+// Presses (or un-presses) the keycode corresponding to an ASCII character,
+// including shift if necessary (to achieve the right effect).
+void press_char(bool press, char ascii_code) {
+  const uint8_t shift = KC_LSFT;
+  // if pressing the key, set shift appropriately
+  if (press) {
+    if (is_shifted_char(ascii_code)) {
+      if (!shift_down) {
+        register_code(shift);
+      }
     } else {
-      send_string(no);
+      if (shift_down) {
+        unregister_code(shift);
+      }
     }
+  }
+  // actually press/unpress the key
+  const uint8_t key = keycode(ascii_code);
+  if (press) {
+    register_code(key);
+  } else {
+    unregister_code(key);
+  }
+  // if unpressing the key, unset shift appropriately
+  if (!press) {
+    if (is_shifted_char(ascii_code)) {
+      if (!shift_down) {
+        unregister_code(shift);
+      }
+    } else {
+      if (shift_down) {
+        register_code(shift);
+      }
+    }
+  }
+}
+
+// Sends a down/up-stroke including shift if shift was pressed
+bool capitalized(char no, char yes, keyrecord_t *record) {
+  // Press or unpress at the right shift level
+  if (record->event.pressed) {
+    press_char(true, (shift_down) ? yes : no);
+  } else {
+    // But if unpress, unpress both
+    press_char(false, yes);
+    press_char(false, no);
   }
   return false;
 }
@@ -138,38 +185,41 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     // Keys with custom capitalization
     case LPAREN:
-      return capitalized("(", "[", record);
+      return capitalized('(', '[', record);
       break;
     case RPAREN:
-      return capitalized(")", "]", record);
+      return capitalized(')', ']', record);
       break;
     case LANGLE:
-      return capitalized("<", "{", record);
+      return capitalized('<', '{', record);
       break;
     case RANGLE:
-      return capitalized(">", "}", record);
+      return capitalized('>', '}', record);
       break;
     case PERIOD:
-      return capitalized(".", ":", record);
+      return capitalized('.', ':', record);
       break;
     case COMMA:
-      return capitalized(",", ";", record);
+      return capitalized(',', ';', record);
       break;
     case ATSIGN:
-      return capitalized("@", "#", record);
+      return capitalized('@', '#', record);
       break;
     case CARET:
-      return capitalized("^", "&", record);
+      return capitalized('^', '&', record);
       break;
     case DOLLAR:
-      return capitalized("$", "$", record);
+      return capitalized('$', '$', record);
       break;
     case SLASH:
+      // Extra modifiers aren't (yet) supported by the 'capitalized' function,
+      // which means it's tricky to get key-repeat for em-dash. We punt on this
+      // and don't give it repeat behavior.
       if (record->event.pressed) {
         if (!shift_down) {
           SEND_STRING("/");
         } else {
-          SEND_STRING(SS_LALT(SS_LSFT("-"))); // em-dash
+          SEND_STRING(SS_LALT(SS_LSFT("-")));  // em-dash
         }
       }
       return false;
