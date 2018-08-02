@@ -125,6 +125,9 @@ uint16_t keycode(char ascii_code) {
 
 // Presses (or un-presses) the keycode corresponding to an ASCII character,
 // including shift if necessary (to achieve the right effect).
+// This function is a decomposition of the functionality of send_char (in the
+// file quantum/quantum.c) to allow separate up/down presses, with the addition
+// of behaving sensibly in the presence of shift being held down.
 void press_char(bool press, char ascii_code) {
   const uint8_t shift = KC_LSFT;
   // if pressing the key, set shift appropriately
@@ -167,6 +170,8 @@ bool capitalized(char no, char yes, keyrecord_t *record) {
     press_char(true, (shift_down) ? yes : no);
   } else {
     // But if unpress, unpress both
+    // This prevents a stuck-key bug that happened with the sequence
+    // shift down, key down, shift up, key up
     press_char(false, yes);
     press_char(false, no);
   }
