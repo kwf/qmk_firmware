@@ -49,8 +49,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         COMMA,     KC_N,      KC_M,      CARET,     DOLLAR,    KC_UP,     RANGLE,
                               KC_MINUS,  KC_NO,     KC_LEFT,   KC_DOWN,   KC_RIGHT,
 
-        KC_LALT, KC_LCTL,
-        MO(1),
+        KC_LALT, MO(1),
+        KC_LCTL,
         KC_TAB,  KC_BSPACE, KC_SPACE),
 
   [1] = LAYOUT_ergodox(
@@ -61,7 +61,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         RGB_TOG, KC_NO,   KC_NO,   KC_NO,     KC_NO,
 
                                                 ALL_T(KC_NO), KC_LSHIFT,
-                                                              KC_LCTL,
+                                                KC_LCTL,
                                           KC_LSHIFT, KC_LGUI, KC_LALT,
 
         LSFT(KC_TAB), KC_MS_BTN1,    KC_MS_BTN2,          KC_MS_BTN3,           KC_MEDIA_PREV_TRACK, KC_MEDIA_NEXT_TRACK, KC_MEDIA_PLAY_PAUSE,
@@ -70,8 +70,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_ENTER,     LALT(KC_LEFT), LALT(LSFT(KC_LEFT)), LALT(LSFT(KC_RIGHT)), LALT(KC_RIGHT),      KC_NO,               KC_AUDIO_VOL_DOWN,
                                      KC_NO,               KC_NO,                KC_NO,               KC_NO,               KC_NO,
 
-        KC_LALT, KC_LCTL,
-        ALL_T(KC_NO),
+        KC_LALT, ALL_T(KC_NO),
+        KC_LCTL,
         KC_TAB, KC_BSPACE, KC_SPACE),
 
 };
