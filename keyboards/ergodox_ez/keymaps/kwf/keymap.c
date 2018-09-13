@@ -43,7 +43,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                                                           KC_LCTL,
                                                       KC_LSHIFT, KC_LGUI, KC_LALT,
 
-        KC_NO,     KC_6,      KC_7,      KC_8,      KC_9,      KC_0,      SLASH,
+        KC_ENTER,  KC_6,      KC_7,      KC_8,      KC_9,      KC_0,      SLASH,
         KC_QUES,   KC_Y,      KC_U,      KC_I,      KC_O,      KC_P,      RPAREN,
                    KC_H,      KC_J,      KC_K,      KC_L,      ATSIGN,    KC_ENTER,
         COMMA,     KC_N,      KC_M,      CARET,     DOLLAR,    KC_UP,     RANGLE,
@@ -64,10 +64,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                                 KC_LCTL,
                                           KC_LSHIFT, KC_LGUI, KC_LALT,
 
-        LSFT(KC_TAB), KC_MS_BTN1,    KC_MS_BTN2,          KC_MS_BTN3,           KC_MEDIA_PREV_TRACK, KC_MEDIA_NEXT_TRACK, KC_MEDIA_PLAY_PAUSE,
+        KC_ENTER,     KC_MS_BTN1,    KC_MS_BTN2,          KC_MS_BTN3,           KC_MEDIA_PREV_TRACK, KC_MEDIA_NEXT_TRACK, KC_MEDIA_PLAY_PAUSE,
         KC_TAB,       KC_MS_LEFT,    KC_MS_DOWN,          KC_MS_UP,             KC_MS_RIGHT,         KC_NO,               KC_AUDIO_MUTE,
                       KC_LEFT,       KC_DOWN,             KC_UP,                KC_RIGHT,            KC_NO,               KC_AUDIO_VOL_UP,
-        KC_ENTER,     LALT(KC_LEFT), LALT(LSFT(KC_LEFT)), LALT(LSFT(KC_RIGHT)), LALT(KC_RIGHT),      KC_NO,               KC_AUDIO_VOL_DOWN,
+        LSFT(KC_TAB), LALT(KC_LEFT), LALT(LSFT(KC_LEFT)), LALT(LSFT(KC_RIGHT)), LALT(KC_RIGHT),      KC_NO,               KC_AUDIO_VOL_DOWN,
                                      KC_NO,               KC_NO,                KC_NO,               KC_NO,               KC_NO,
 
         KC_LALT, ALL_T(KC_NO),
