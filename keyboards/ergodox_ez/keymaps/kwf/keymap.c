@@ -37,9 +37,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         LPAREN,    KC_Q,      KC_W,      KC_E,      KC_R,      KC_T,      KC_EXLM,
         KC_ESCAPE, KC_A,      KC_S,      KC_D,      KC_F,      KC_G,
         LANGLE,    KC_Z,      KC_X,      KC_C,      KC_V,      KC_B,      PERIOD,
-        KC_NO,     KC_NO,     KC_GRAVE,  KC_EQUAL,  KC_QUOTE,
+        KC_NO,     KC_NO,     KC_NO,     KC_EQUAL,  KC_QUOTE,
 
-                                                               MO(1),     KC_LSHIFT,
+                                                               TT(1),     KC_LSHIFT,
                                                                           KC_LCTL,
                                                     KC_LSHIFT, KC_LGUI,   KC_LALT,
 
@@ -47,30 +47,30 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_QUES,   KC_Y,      KC_U,      KC_I,      KC_O,      KC_P,      RPAREN,
                    KC_H,      KC_J,      KC_K,      KC_L,      ATSIGN,    KC_ENTER,
         COMMA,     KC_N,      KC_M,      CARET,     DOLLAR,    KC_UP,     RANGLE,
-                              KC_MINUS,  KC_NO,     KC_LEFT,   KC_DOWN,   KC_RIGHT,
+                              KC_MINUS,  KC_GRAVE,  KC_LEFT,   KC_DOWN,   KC_RIGHT,
 
-        KC_LALT, MO(1),
+        KC_LALT, TT(1),
         KC_LCTL,
         KC_TAB,  KC_BSPACE, KC_SPACE),
 
   [1] = LAYOUT_ergodox(
-        KC_NO,     KC_1,    KC_2,    KC_3,      KC_MS_BTN3, KC_MS_BTN2, KC_MS_BTN1,
-        KC_NO,     KC_4,    KC_5,    KC_6,      KC_NO,      KC_NO,      KC_MS_WH_DOWN,
-        KC_ESCAPE, KC_7,    KC_8,    KC_9,      KC_NO,      KC_NO,
-        KC_NO,     KC_KP_0, KC_0,    KC_KP_DOT, KC_NO,      KC_NO,      KC_MS_WH_UP,
+        KC_NO,     KC_1,    KC_2,    KC_3,      KC_NO,   KC_NO, KC_ENTER,
+        KC_NO,     KC_4,    KC_5,    KC_6,      KC_NO,   KC_NO, KC_TAB,
+        TO(0),     KC_7,    KC_8,    KC_9,      KC_NO,   KC_NO,
+        KC_NO,     KC_KP_0, KC_0,    KC_KP_DOT, KC_NO,   KC_NO, LSFT(KC_TAB),
         RGB_TOG,   RGB_VAD, RGB_VAI, RGB_HUD,   RGB_HUI,
 
-                                                        ALL_T(KC_NO), KC_LSHIFT,
+                                                               TO(0), KC_LSHIFT,
                                                                       KC_LCTL,
-                                              KC_LSHIFT, KC_LGUI,     KC_LALT,
+                                                  KC_LSHIFT, KC_LGUI, KC_LALT,
 
-        KC_ENTER,     KC_MS_BTN1,    KC_MS_BTN2,          KC_MS_BTN3,           KC_MEDIA_PREV_TRACK, KC_MEDIA_NEXT_TRACK, KC_MEDIA_PLAY_PAUSE,
-        KC_TAB,       KC_MS_LEFT,    KC_MS_DOWN,          KC_MS_UP,             KC_MS_RIGHT,         KC_NO,               KC_AUDIO_MUTE,
-                      KC_LEFT,       KC_DOWN,             KC_UP,                KC_RIGHT,            KC_NO,               KC_AUDIO_VOL_UP,
-        LSFT(KC_TAB), LALT(KC_LEFT), LALT(LSFT(KC_LEFT)), LALT(LSFT(KC_RIGHT)), LALT(KC_RIGHT),      KC_NO,               KC_AUDIO_VOL_DOWN,
-                                     KC_NO,               KC_NO,                KC_NO,               KC_NO,               KC_NO,
+        KC_ENTER,      KC_MS_BTN1,          KC_MS_BTN2,    KC_MS_BTN3,     KC_MEDIA_PREV_TRACK,  KC_MEDIA_NEXT_TRACK, KC_MEDIA_PLAY_PAUSE,
+        KC_MS_WH_DOWN, KC_MS_LEFT,          KC_MS_DOWN,    KC_MS_UP,       KC_MS_RIGHT,          KC_NO,               KC_AUDIO_MUTE,
+                       KC_LEFT,             KC_DOWN,       KC_UP,          KC_RIGHT,             KC_NO,               KC_AUDIO_VOL_UP,
+        KC_MS_WH_UP,   LALT(LSFT(KC_LEFT)), LALT(KC_LEFT), LALT(KC_RIGHT), LALT(LSFT(KC_RIGHT)), KC_NO,               KC_AUDIO_VOL_DOWN,
+                                            KC_NO,         KC_NO,          KC_NO,                KC_NO,               KC_NO,
 
-        KC_LALT, ALL_T(KC_NO),
+        KC_LALT, TO(0),
         KC_LCTL,
         KC_TAB, KC_BSPACE, KC_SPACE),
 
