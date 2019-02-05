@@ -54,17 +54,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TAB,  KC_BSPACE, KC_SPACE),
 
   [1] = LAYOUT_ergodox(
-        KC_NO,     KC_1,    KC_2,    KC_3,      KC_NO,   KC_NO, KC_ENTER,
-        KC_NO,     KC_4,    KC_5,    KC_6,      KC_NO,   KC_NO, KC_TAB,
-        TO(0),     KC_7,    KC_8,    KC_9,      KC_NO,   KC_NO,
-        KC_NO,     KC_KP_0, KC_0,    KC_KP_DOT, KC_NO,   KC_NO, LSFT(KC_TAB),
+        KC_NO,     KC_1,    KC_2,    KC_3,      KC_MS_BTN2,   KC_MS_BTN1, KC_MS_BTN3,
+        KC_NO,     KC_4,    KC_5,    KC_6,      KC_NO,        KC_NO,      KC_MS_WH_DOWN,
+        TO(0),     KC_7,    KC_8,    KC_9,      KC_NO,        KC_NO,
+        KC_NO,     KC_KP_0, KC_0,    KC_KP_DOT, KC_NO,        KC_NO,      KC_MS_WH_UP,
         RGB_TOG,   RGB_VAD, RGB_VAI, RGB_HUD,   RGB_HUI,
 
                                                                TO(0), KC_LSHIFT,
                                                                       KC_LCTL,
                                                   KC_LSHIFT, KC_LGUI, KC_LALT,
 
-        KC_ENTER,      KC_MS_BTN1,          KC_MS_BTN2,    KC_MS_BTN3,     KC_MEDIA_PREV_TRACK,  KC_MEDIA_NEXT_TRACK, KC_MEDIA_PLAY_PAUSE,
+        KC_MS_BTN3,    KC_MS_BTN1,          KC_MS_BTN2,    KC_NO,          KC_MEDIA_PREV_TRACK,  KC_MEDIA_NEXT_TRACK, KC_MEDIA_PLAY_PAUSE,
         KC_MS_WH_DOWN, KC_MS_LEFT,          KC_MS_DOWN,    KC_MS_UP,       KC_MS_RIGHT,          KC_NO,               KC_AUDIO_MUTE,
                        KC_LEFT,             KC_DOWN,       KC_UP,          KC_RIGHT,             KC_NO,               KC_AUDIO_VOL_UP,
         KC_MS_WH_UP,   LALT(LSFT(KC_LEFT)), LALT(KC_LEFT), LALT(KC_RIGHT), LALT(LSFT(KC_RIGHT)), KC_NO,               KC_AUDIO_VOL_DOWN,
