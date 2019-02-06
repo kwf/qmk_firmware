@@ -28,6 +28,8 @@ enum custom_keycodes {
   CARET,   // '^' and '&'
   DOLLAR,  // '$' and '*'
 
+  SPECIAL_ENTER,  // custom dual-function enter key
+
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -39,9 +41,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         LANGLE,    KC_Z,      KC_X,      KC_C,      KC_V,      KC_B,      PERIOD,
         KC_NO,     KC_NO,     KC_NO,     KC_EQUAL,  KC_QUOTE,
 
-                                                               TT(1),     KC_LCTL,
-                                                                          KC_LALT,
-                                                    KC_LSHIFT, KC_ENTER,  KC_LGUI,
+                                                                  TT(1), KC_LSFT,
+                                                                         KC_LCTL,
+                                               KC_LSHIFT, SPECIAL_ENTER, KC_LALT,
 
         KC_ENTER,  KC_6,      KC_7,      KC_8,      KC_9,      KC_0,      SLASH,
         KC_QUES,   KC_Y,      KC_U,      KC_I,      KC_O,      KC_P,      RPAREN,
@@ -49,9 +51,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         COMMA,     KC_N,      KC_M,      CARET,     DOLLAR,    KC_UP,     RANGLE,
                               KC_MINUS,  KC_GRAVE,  KC_LEFT,   KC_DOWN,   KC_RIGHT,
 
-        KC_LCTL, TT(1),
-        KC_LALT,
-        KC_LGUI, KC_BSPACE, KC_SPACE),
+        KC_LSFT, TT(1),
+        KC_LCTL,
+        KC_LALT, KC_BSPACE, KC_SPACE),
 
   [1] = LAYOUT_ergodox(
         KC_NO,     KC_1,    KC_2,    KC_3,      KC_MS_BTN2,   KC_MS_BTN1,   KC_MS_BTN3,
@@ -60,9 +62,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_NO,     KC_KP_0, KC_0,    KC_KP_DOT, KC_NO,        KC_MS_ACCEL2, KC_MS_WH_UP,
         RGB_TOG,   RGB_VAD, RGB_VAI, RGB_HUD,   RGB_HUI,
 
-                                                                     TO(0), KC_LCTL,
-                                                                            KC_LALT,
-                                                       KC_LSHIFT, KC_ENTER, KC_LGUI,
+                                                                     TO(0), _______,
+                                                                            _______,
+                                                          _______, _______, _______,
 
         KC_MS_BTN3,    KC_MS_BTN1,          KC_MS_BTN2,    KC_NO,          KC_NO,                KC_NO,             KC_MEDIA_PLAY_PAUSE,
         KC_MS_WH_DOWN, KC_MS_LEFT,          KC_MS_DOWN,    KC_MS_UP,       KC_MS_RIGHT,          KC_NO,             KC_NO,
@@ -70,9 +72,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_MS_WH_UP,   LALT(LSFT(KC_LEFT)), LALT(KC_LEFT), LALT(KC_RIGHT), LALT(LSFT(KC_RIGHT)), KC_AUDIO_VOL_UP,   KC_NO,
                                             KC_NO,         KC_NO,          KC_MEDIA_PREV_TRACK,  KC_AUDIO_VOL_DOWN, KC_MEDIA_NEXT_TRACK,
 
-        KC_LCTL, TO(0),
-        KC_LALT,
-        KC_LGUI, KC_BSPACE, KC_SPACE),
+        _______, TO(0),
+        _______,
+        _______, _______, _______),
 
 };
 
@@ -101,9 +103,9 @@ void matrix_init_user(void) {
 
 // keep track of modifier state
 static bool shift_down = false;
-static bool ctrl_down  = false;
-static bool alt_down   = false;
-static bool cmd_down   = false;
+/* static bool ctrl_down  = false; */
+/* static bool alt_down   = false; */
+/* static bool cmd_down   = false; */
 
 // Track whether a key is up or down by updating a boolean variable
 void track_key(uint16_t keycode, bool *flag,
@@ -182,11 +184,34 @@ bool capitalized(char no, char yes, keyrecord_t *record) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
+  static bool send_enter_on_up = false;
+
   // track whether modifiers are down
   track_key(KC_LSHIFT, &shift_down, keycode, record);
-  track_key(KC_LCTL,   &ctrl_down,  keycode, record);
-  track_key(KC_LALT,   &alt_down,   keycode, record);
-  track_key(KC_LGUI,   &cmd_down,   keycode, record);
+  /* track_key(KC_LCTL,   &ctrl_down,  keycode, record); */
+  /* track_key(KC_LALT,   &alt_down,   keycode, record); */
+  /* track_key(KC_LGUI,   &cmd_down,   keycode, record); */
+
+  // A tap on enter sends ENTER, but it's also a normal command key This works
+  // better than the built-in mod-tap functionality
+  // <https://docs.qmk.fm/#/feature_advanced_keycodes?id=mod-tap> because it
+  // allows quick DOWN(ENTER), DOWN(key), UP(ENTER), UP(key) interleaving, which
+  // is often something my typing produces when I'm going fast.
+  if (keycode == SPECIAL_ENTER) {
+      if (record->event.pressed) {
+        SEND_STRING(SS_DOWN(X_LGUI));  // put command down
+        send_enter_on_up = true;       // note that enter was last key pressed
+      } else {
+        SEND_STRING(SS_UP(X_LGUI));    // take command up
+        if (send_enter_on_up) {        // only if enter was the last key pressed
+          SEND_STRING(SS_TAP(X_ENTER));  // send an enter tap
+        }
+        send_enter_on_up = false;
+      }
+      return false;
+  } else {
+    send_enter_on_up = false;  // if the press was not enter, note this
+  }
 
   switch (keycode) {
 
@@ -231,29 +256,26 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           SEND_STRING(SS_LALT("-"));
         }
       }
-      return false;
       break;
-
     case EPRM:
       if (record->event.pressed) {
         eeconfig_init();
       }
-      return false;
       break;
     case VRSN:
       if (record->event.pressed) {
         SEND_STRING (QMK_KEYBOARD "/" QMK_KEYMAP " @ " QMK_VERSION);
       }
-      return false;
       break;
     case RGB_SLD:
       if (record->event.pressed) {
         rgblight_mode(1);
       }
-      return false;
       break;
 
   }
+
+
   return true;
 }
 
