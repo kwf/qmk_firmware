@@ -39,19 +39,19 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         LANGLE,    KC_Z,      KC_X,      KC_C,      KC_V,      KC_B,      PERIOD,
         KC_NO,     KC_NO,     KC_NO,     KC_EQUAL,  KC_QUOTE,
 
-                                                               TT(1),     KC_LSHIFT,
-                                                                          KC_LCTL,
-                                                    KC_LSHIFT, KC_LGUI,   KC_LALT,
+                                                               TT(1),     KC_LCTL,
+                                                                          KC_LALT,
+                                                    KC_LSHIFT, KC_ENTER,  KC_LGUI,
 
         KC_ENTER,  KC_6,      KC_7,      KC_8,      KC_9,      KC_0,      SLASH,
         KC_QUES,   KC_Y,      KC_U,      KC_I,      KC_O,      KC_P,      RPAREN,
-                   KC_H,      KC_J,      KC_K,      KC_L,      ATSIGN,    KC_ENTER,
+                   KC_H,      KC_J,      KC_K,      KC_L,      ATSIGN,    KC_TAB,
         COMMA,     KC_N,      KC_M,      CARET,     DOLLAR,    KC_UP,     RANGLE,
                               KC_MINUS,  KC_GRAVE,  KC_LEFT,   KC_DOWN,   KC_RIGHT,
 
-        KC_LALT, TT(1),
-        KC_LCTL,
-        KC_TAB,  KC_BSPACE, KC_SPACE),
+        KC_LCTL, TT(1),
+        KC_LALT,
+        KC_LGUI, KC_BSPACE, KC_SPACE),
 
   [1] = LAYOUT_ergodox(
         KC_NO,     KC_1,    KC_2,    KC_3,      KC_MS_BTN2,   KC_MS_BTN1,   KC_MS_BTN3,
@@ -60,9 +60,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_NO,     KC_KP_0, KC_0,    KC_KP_DOT, KC_NO,        KC_MS_ACCEL2, KC_MS_WH_UP,
         RGB_TOG,   RGB_VAD, RGB_VAI, RGB_HUD,   RGB_HUI,
 
-                                                               TO(0), KC_LSHIFT,
-                                                                      KC_LCTL,
-                                                  KC_LSHIFT, KC_LGUI, KC_LALT,
+                                                                     TO(0), KC_LCTL,
+                                                                            KC_LALT,
+                                                       KC_LSHIFT, KC_ENTER, KC_LGUI,
 
         KC_MS_BTN3,    KC_MS_BTN1,          KC_MS_BTN2,    KC_NO,          KC_NO,                KC_NO,             KC_MEDIA_PLAY_PAUSE,
         KC_MS_WH_DOWN, KC_MS_LEFT,          KC_MS_DOWN,    KC_MS_UP,       KC_MS_RIGHT,          KC_NO,             KC_NO,
@@ -70,9 +70,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_MS_WH_UP,   LALT(LSFT(KC_LEFT)), LALT(KC_LEFT), LALT(KC_RIGHT), LALT(LSFT(KC_RIGHT)), KC_AUDIO_VOL_UP,   KC_NO,
                                             KC_NO,         KC_NO,          KC_MEDIA_PREV_TRACK,  KC_AUDIO_VOL_DOWN, KC_MEDIA_NEXT_TRACK,
 
-        KC_LALT, TO(0),
-        KC_LCTL,
-        KC_TAB, KC_BSPACE, KC_SPACE),
+        KC_LCTL, TO(0),
+        KC_LALT,
+        KC_LGUI, KC_BSPACE, KC_SPACE),
 
 };
 
