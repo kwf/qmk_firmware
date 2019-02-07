@@ -48,7 +48,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
                                                                 TT(1), KC_LSFT,
                                                                        KC_LCTL,
-                                                KC_LSHIFT, DUAL_ENTER, DUAL_ESC,
+                                                 DUAL_ESC, DUAL_ENTER, KC_LALT,
 
         KC_NO,     KC_6,      KC_7,      KC_8,      KC_9,      KC_0,      KC_NO,
         QUES,      KC_Y,      KC_U,      KC_I,      KC_O,      KC_P,      RPAREN,
@@ -126,18 +126,16 @@ uint16_t keycode(char ascii_code) {
   return pgm_read_byte(&ascii_to_keycode_lut[(uint8_t)ascii_code]);
 }
 
-// keep track of modifier state
-static bool shift_down = false;
-/* static bool ctrl_down  = false; */
-/* static bool alt_down   = false; */
-/* static bool cmd_down   = false; */
+bool is_shift_down(void) {
+  return get_mods() & (MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT));
+}
 
 // Presses (or un-presses) the keycode corresponding to an ASCII character,
 // including shift if necessary (to achieve the right effect).
 // This function is a decomposition of the functionality of send_char (in the
 // file quantum/quantum.c) to allow separate up/down presses, with the addition
 // of behaving sensibly in the presence of shift being held down.
-void press_char(bool press, char ascii_code) {
+void press_char(bool shift_down, bool press, char ascii_code) {
   const uint8_t shift = KC_LSFT;
   // if pressing the key, set shift appropriately
   if (press) {
@@ -173,16 +171,26 @@ void press_char(bool press, char ascii_code) {
 }
 
 // Sends a down/up-stroke including shift if shift was pressed
-void capitalized(char no, char yes, keyrecord_t *record) {
-  // Press or unpress at the right shift level
-  if (record->event.pressed) {
-    press_char(true, (shift_down) ? yes : no);
+bool capitalized(uint16_t cap_code,
+                 char no,
+                 char yes,
+                 bool shift_down,
+                 uint16_t keycode,
+                 keyrecord_t *record) {
+  if (keycode == cap_code) {
+    // Press or unpress at the right shift level
+    if (record->event.pressed) {
+      press_char(shift_down, true, shift_down ? yes : no);
+    } else {
+      // But if unpress, unpress both
+      // This prevents a stuck-key bug that happened with the sequence
+      // shift down, key down, shift up, key up
+      press_char(shift_down, false, yes);
+      press_char(shift_down, false, no);
+    }
+    return true;
   } else {
-    // But if unpress, unpress both
-    // This prevents a stuck-key bug that happened with the sequence
-    // shift down, key down, shift up, key up
-    press_char(false, yes);
-    press_char(false, no);
+    return false;
   }
 }
 
@@ -221,13 +229,16 @@ bool dual_function(uint16_t dual_code,
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
-  // keep track of whether to release particular keys for dual-function keys
+  // Keep track of whether shift is currently pressed
+  static bool shift_down = false;
+  track_key(DUAL_ESC, &shift_down, keycode, record);
+
+  // Keep track of whether to release particular keys for dual-function keys
   static bool enter_on_up = false;
   static bool tab_on_up   = false;
   static bool esc_on_up   = false;
 
   // track whether modifiers are down
-  track_key(KC_LSHIFT, &shift_down, keycode, record);
   /* track_key(KC_LCTL,   &ctrl_down,  keycode, record); */
   /* track_key(KC_LALT,   &alt_down,   keycode, record); */
   /* track_key(KC_LGUI,   &cmd_down,   keycode, record); */
@@ -235,57 +246,36 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   bool match =
     dual_function(DUAL_ENTER, KC_LGUI, KC_ENTER,  &enter_on_up, keycode, record) ||
     dual_function(DUAL_TAB,   KC_LALT, KC_TAB,    &tab_on_up,   keycode, record) ||
-    dual_function(DUAL_ESC,   KC_LALT, KC_ESCAPE, &esc_on_up,   keycode, record);
+    dual_function(DUAL_ESC,   KC_LSFT, KC_ESCAPE, &esc_on_up,   keycode, record) ||
+    capitalized(  LPAREN, '(', '[',               shift_down,   keycode, record) ||
+    capitalized(  RPAREN, ')', ']',               shift_down,   keycode, record) ||
+    capitalized(  LANGLE, '<', '{',               shift_down,   keycode, record) ||
+    capitalized(  RANGLE, '>', '}',               shift_down,   keycode, record) ||
+    capitalized(  PERIOD, '.', ':',               shift_down,   keycode, record) ||
+    capitalized(  COMMA,  ',', ';',               shift_down,   keycode, record) ||
+    capitalized(  ATSIGN, '@', '#',               shift_down,   keycode, record) ||
+    capitalized(  CARET,  '^', '&',               shift_down,   keycode, record) ||
+    capitalized(  DOLLAR, '$', '*',               shift_down,   keycode, record) ||
+    capitalized(  BANG,   '!', '`',               shift_down,   keycode, record) ||
+    capitalized(  QUES,   '?', '~',               shift_down,   keycode, record);
 
-  if (match) { return false; }
-
-  switch (keycode) {
-
-    // Keys with custom capitalization
-    case LPAREN: capitalized('(', '[', record); return false;
-    case RPAREN: capitalized(')', ']', record); return false;
-    case LANGLE: capitalized('<', '{', record); return false;
-    case RANGLE: capitalized('>', '}', record); return false;
-    case PERIOD: capitalized('.', ':', record); return false;
-    case COMMA:  capitalized(',', ';', record); return false;
-    case ATSIGN: capitalized('@', '#', record); return false;
-    case CARET:  capitalized('^', '&', record); return false;
-    case DOLLAR: capitalized('$', '*', record); return false;
-    case BANG:   capitalized('!', '`', record); return false;
-    case QUES:   capitalized('?', '~', record); return false;
-    case SLASH:
-      // Extra modifiers aren't (yet) supported by the 'capitalized' function,
-      // which means it's tricky to get key-repeat for em-dash. We punt on this
-      // and don't give it repeat behavior.
-      if (record->event.pressed) {
-        if (!shift_down) {
-          SEND_STRING("/");
-        } else {
-          // em-dash
-          SEND_STRING(SS_DOWN(X_LSHIFT)); // don't lift shift, let user do that
-          SEND_STRING(SS_LALT("-"));
-        }
+  // Extra modifiers aren't (yet) supported by the 'capitalized' function,
+  // which means it's tricky to get key-repeat for em-dash. We punt on this
+  // and don't give it repeat behavior.
+  if (keycode == SLASH) {
+    match = true;
+    if (record->event.pressed) {
+      if (!is_shift_down()) {
+        SEND_STRING("/");
+      } else {
+        // em-dash
+        SEND_STRING(SS_DOWN(X_LSHIFT)); // don't lift shift, let user do that
+        SEND_STRING(SS_LALT("-"));
       }
-      break;
-    case EPRM:
-      if (record->event.pressed) {
-        eeconfig_init();
-      }
-      break;
-    case VRSN:
-      if (record->event.pressed) {
-        SEND_STRING (QMK_KEYBOARD "/" QMK_KEYMAP " @ " QMK_VERSION);
-      }
-      break;
-    case RGB_SLD:
-      if (record->event.pressed) {
-        rgblight_mode(1);
-      }
-      break;
-
+    }
   }
 
-  return true;
+  return !match; // If none of our custom processing fired, defer to system
 }
 
 uint32_t layer_state_set_user(uint32_t state) {
