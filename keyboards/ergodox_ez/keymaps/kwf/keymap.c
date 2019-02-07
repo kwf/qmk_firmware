@@ -27,17 +27,21 @@ enum custom_keycodes {
   ATSIGN,  // '@' and '#'
   CARET,   // '^' and '&'
   DOLLAR,  // '$' and '*'
+  BANG,    // '!' and '`'
+  QUES,    // '?' and '~'
 
   DUAL_ENTER,  // custom dual-function enter key
   DUAL_TAB,    // custom dual-function tab key
   DUAL_ESC,    // custom dual-function escape key
 };
 
+// TODO: split `/~ across !/? keys (shifted)
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [0] = LAYOUT_ergodox(
         KC_NO,     KC_1,      KC_2,      KC_3,      KC_4,      KC_5,      KC_NO,
-        LPAREN,    KC_Q,      KC_W,      KC_E,      KC_R,      KC_T,      KC_EXLM,
+        LPAREN,    KC_Q,      KC_W,      KC_E,      KC_R,      KC_T,      BANG,
         KC_BSLASH, KC_A,      KC_S,      KC_D,      KC_F,      KC_G,
         LANGLE,    KC_Z,      KC_X,      KC_C,      KC_V,      KC_B,      PERIOD,
         KC_NO,     KC_NO,     KC_NO,     KC_EQUAL,  KC_QUOTE,
@@ -47,7 +51,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                                 KC_LSHIFT, DUAL_ENTER, DUAL_ESC,
 
         KC_NO,     KC_6,      KC_7,      KC_8,      KC_9,      KC_0,      KC_NO,
-        KC_QUES,   KC_Y,      KC_U,      KC_I,      KC_O,      KC_P,      RPAREN,
+        QUES,      KC_Y,      KC_U,      KC_I,      KC_O,      KC_P,      RPAREN,
                    KC_H,      KC_J,      KC_K,      KC_L,      ATSIGN,    SLASH,
         COMMA,     KC_N,      KC_M,      CARET,     DOLLAR,    KC_UP,     RANGLE,
                               KC_MINUS,  KC_GRAVE,  KC_LEFT,   KC_DOWN,   KC_RIGHT,
@@ -247,6 +251,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case ATSIGN: capitalized('@', '#', record); return false;
     case CARET:  capitalized('^', '&', record); return false;
     case DOLLAR: capitalized('$', '*', record); return false;
+    case BANG:   capitalized('!', '`', record); return false;
+    case QUES:   capitalized('?', '~', record); return false;
     case SLASH:
       // Extra modifiers aren't (yet) supported by the 'capitalized' function,
       // which means it's tricky to get key-repeat for em-dash. We punt on this
