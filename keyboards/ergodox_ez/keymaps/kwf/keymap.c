@@ -3,13 +3,6 @@
 #include "action_layer.h"
 #include "version.h"
 
-
-#include "keymap_german.h"
-
-#include "keymap_nordic.h"
-
-
-
 enum custom_keycodes {
   PLACEHOLDER = SAFE_RANGE, // can always be here
   EPRM,
@@ -21,21 +14,20 @@ enum custom_keycodes {
   RPAREN,  // ')' and ']'
   LANGLE,  // '<' and '{'
   RANGLE,  // '>' and '}'
-  PERIOD,  // '.' and ':'
-  COMMA,   // ',' and ';'
   SLASH,   // '/' and (em-dash)
   ATSIGN,  // '@' and '#'
   CARET,   // '^' and '&'
   DOLLAR,  // '$' and '*'
+
+  PERIOD,  // '.' and ':'
+  COMMA,   // ',' and ';'
   BANG,    // '!' and '`'
   QUES,    // '?' and '~'
 
-  DUAL_ENTER,  // custom dual-function enter key
-  DUAL_TAB,    // custom dual-function tab key
-  DUAL_ESC,    // custom dual-function escape key
+  DF_ENTER,  // ENTER, hold for CMD
+  DF_TAB,    // TAB, hold for ALT
+  DF_ESC,    // ESC, hold for SHIFT
 };
-
-// TODO: split `/~ across !/? keys (shifted)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
@@ -48,24 +40,24 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
                                                                 TT(1), KC_LSFT,
                                                                        KC_LCTL,
-                                                 DUAL_ESC, DUAL_ENTER, KC_LALT,
+                                                     DF_ESC, DF_ENTER, KC_LALT,
 
         KC_NO,     KC_6,      KC_7,      KC_8,      KC_9,      KC_0,      KC_NO,
-        QUES,      KC_Y,      KC_U,      KC_I,      KC_O,      KC_P,      RPAREN,
+        QUES,   KC_Y,      KC_U,      KC_I,      KC_O,      KC_P,      RPAREN,
                    KC_H,      KC_J,      KC_K,      KC_L,      ATSIGN,    SLASH,
-        COMMA,     KC_N,      KC_M,      CARET,     DOLLAR,    KC_UP,     RANGLE,
+        COMMA,  KC_N,      KC_M,      CARET,     DOLLAR,    KC_UP,     RANGLE,
                               KC_MINUS,  KC_GRAVE,  KC_LEFT,   KC_DOWN,   KC_RIGHT,
 
         KC_LSFT, TT(1),
         KC_LCTL,
-        DUAL_TAB, KC_BSPACE, KC_SPACE),
+        DF_TAB, KC_BSPACE, KC_SPACE),
 
   [1] = LAYOUT_ergodox(
-        KC_NO,     KC_1,    KC_2,    KC_3,      KC_MS_BTN2,   KC_MS_BTN1,   KC_MS_BTN3,
-        KC_NO,     KC_4,    KC_5,    KC_6,      KC_NO,        KC_MS_ACCEL0, KC_MS_WH_DOWN,
-        KC_NO,     KC_7,    KC_8,    KC_9,      KC_NO,        KC_MS_ACCEL1,
-        KC_NO,     KC_KP_0, KC_0,    KC_KP_DOT, KC_NO,        KC_MS_ACCEL2, KC_MS_WH_UP,
-        RGB_TOG,   RGB_VAD, RGB_VAI, RGB_HUD,   RGB_HUI,
+        KC_NO,     KC_1,      KC_2,      KC_3,      KC_MS_BTN2,   KC_MS_BTN1,   KC_MS_BTN3,
+        KC_NO,     KC_4,      KC_5,      KC_6,      KC_NO,        KC_MS_ACCEL0, KC_MS_WH_DOWN,
+        KC_NO,     KC_7,      KC_8,      KC_9,      KC_NO,        KC_MS_ACCEL1,
+        KC_NO,     KC_KP_0,   KC_0,      KC_KP_DOT, KC_NO,        KC_MS_ACCEL2, KC_MS_WH_UP,
+        RGB_TOG,   RGB_VAD,   RGB_VAI,   RGB_HUD,   RGB_HUI,
 
                                                                  TO(0), _______,
                                                                         _______,
@@ -85,19 +77,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 const uint16_t PROGMEM fn_actions[] = {
   [1] = ACTION_LAYER_TAP_TOGGLE(1)
-};
-
-// leaving this in place for compatibilty with old keymaps cloned and re-compiled.
-const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt)
-{
-      switch(id) {
-        case 0:
-        if (record->event.pressed) {
-          SEND_STRING (QMK_KEYBOARD "/" QMK_KEYMAP " @ " QMK_VERSION);
-        }
-        break;
-      }
-    return MACRO_NONE;
 };
 
 void matrix_init_user(void) {
@@ -122,12 +101,8 @@ bool is_shifted_char(char ascii_code) {
 
 // Returns the keycode corresponding to an ASCII character (may require shift
 // to be pressed to correctly send it, see is_shifted_char)
-uint16_t keycode(char ascii_code) {
+uint16_t char_code(char ascii_code) {
   return pgm_read_byte(&ascii_to_keycode_lut[(uint8_t)ascii_code]);
-}
-
-bool is_shift_down(void) {
-  return get_mods() & (MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT));
 }
 
 // Presses (or un-presses) the keycode corresponding to an ASCII character,
@@ -150,7 +125,7 @@ void press_char(bool shift_down, bool press, char ascii_code) {
     }
   }
   // actually press/unpress the key
-  const uint8_t key = keycode(ascii_code);
+  const uint8_t key = char_code(ascii_code);
   if (press) {
     register_code(key);
   } else {
@@ -200,12 +175,12 @@ bool capitalized(uint16_t cap_code,
 // <https://docs.qmk.fm/#/feature_advanced_keycodes?id=mod-tap> because it
 // allows quick DOWN(ENTER), DOWN(key), UP(ENTER), UP(key) interleaving, which
 // is often something my typing produces when I'm going fast.
-bool dual_function(uint16_t dual_code,
-                   uint16_t mod_keycode,
-                   uint16_t tap_keycode,
-                   bool *flag,
-                   uint16_t keycode,
-                   keyrecord_t *record) {
+bool mod_tap_key(uint16_t dual_code,
+                 uint16_t mod_keycode,
+                 uint16_t tap_keycode,
+                 bool *flag,
+                 uint16_t keycode,
+                 keyrecord_t *record) {
   if (keycode == dual_code) {
     if (record->event.pressed) {
       // Put down the mod key
@@ -231,33 +206,29 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
   // Keep track of whether shift is currently pressed
   static bool shift_down = false;
-  track_key(DUAL_ESC, &shift_down, keycode, record);
+  track_key(DF_ESC, &shift_down, keycode, record);
 
   // Keep track of whether to release particular keys for dual-function keys
-  static bool enter_on_up = false;
-  static bool tab_on_up   = false;
-  static bool esc_on_up   = false;
+  static bool ent_on_up = false;
+  static bool tab_on_up = false;
+  static bool esc_on_up = false;
 
-  // track whether modifiers are down
-  /* track_key(KC_LCTL,   &ctrl_down,  keycode, record); */
-  /* track_key(KC_LALT,   &alt_down,   keycode, record); */
-  /* track_key(KC_LGUI,   &cmd_down,   keycode, record); */
-
-  bool match =
-    dual_function(DUAL_ENTER, KC_LGUI, KC_ENTER,  &enter_on_up, keycode, record) ||
-    dual_function(DUAL_TAB,   KC_LALT, KC_TAB,    &tab_on_up,   keycode, record) ||
-    dual_function(DUAL_ESC,   KC_LSFT, KC_ESCAPE, &esc_on_up,   keycode, record) ||
-    capitalized(  LPAREN, '(', '[',               shift_down,   keycode, record) ||
-    capitalized(  RPAREN, ')', ']',               shift_down,   keycode, record) ||
-    capitalized(  LANGLE, '<', '{',               shift_down,   keycode, record) ||
-    capitalized(  RANGLE, '>', '}',               shift_down,   keycode, record) ||
-    capitalized(  PERIOD, '.', ':',               shift_down,   keycode, record) ||
-    capitalized(  COMMA,  ',', ';',               shift_down,   keycode, record) ||
-    capitalized(  ATSIGN, '@', '#',               shift_down,   keycode, record) ||
-    capitalized(  CARET,  '^', '&',               shift_down,   keycode, record) ||
-    capitalized(  DOLLAR, '$', '*',               shift_down,   keycode, record) ||
-    capitalized(  BANG,   '!', '`',               shift_down,   keycode, record) ||
-    capitalized(  QUES,   '?', '~',               shift_down,   keycode, record);
+  bool match
+     = mod_tap_key(DF_ENTER, KC_LGUI, KC_ENT, &ent_on_up, keycode, record)
+    || mod_tap_key(DF_TAB,   KC_LALT, KC_TAB, &tab_on_up, keycode, record)
+    || mod_tap_key(DF_ESC,   KC_LSFT, KC_ESC, &esc_on_up, keycode, record)
+    || capitalized(PERIOD,   '.',     ':',    shift_down, keycode, record)
+    || capitalized(COMMA,    ',',     ';',    shift_down, keycode, record)
+    || capitalized(BANG,     '!',     '`',    shift_down, keycode, record)
+    || capitalized(QUES,     '?',     '~',    shift_down, keycode, record)
+    || capitalized(LPAREN,   '(',     '[',    shift_down, keycode, record)
+    || capitalized(RPAREN,   ')',     ']',    shift_down, keycode, record)
+    || capitalized(LANGLE,   '<',     '{',    shift_down, keycode, record)
+    || capitalized(RANGLE,   '>',     '}',    shift_down, keycode, record)
+    || capitalized(ATSIGN,   '@',     '#',    shift_down, keycode, record)
+    || capitalized(CARET,    '^',     '&',    shift_down, keycode, record)
+    || capitalized(DOLLAR,   '$',     '*',    shift_down, keycode, record)
+    ;
 
   // Extra modifiers aren't (yet) supported by the 'capitalized' function,
   // which means it's tricky to get key-repeat for em-dash. We punt on this
@@ -265,7 +236,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (keycode == SLASH) {
     match = true;
     if (record->event.pressed) {
-      if (!is_shift_down()) {
+      if (!shift_down) {
         SEND_STRING("/");
       } else {
         // em-dash
