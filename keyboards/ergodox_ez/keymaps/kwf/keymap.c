@@ -293,11 +293,16 @@ uint16_t mod_for_code(uint16_t current_mods, uint16_t keycode) {
   return mods;
 }
 
+void tap_code(uint16_t keycode) {
+  press_code(true, keycode);
+  press_code(false, keycode);
+}
+
 void press_mods(bool down, uint16_t mods) {
-  if (mods & MOD_LSFT) { press_code(down, MOD_LSFT); }
-  if (mods & MOD_LCTL) { press_code(down, MOD_LCTL); }
-  if (mods & MOD_LALT) { press_code(down, MOD_LALT); }
-  if (mods & MOD_LGUI) { press_code(down, MOD_LGUI); }
+  if (mods & MOD_LSFT) { press_code(down, KC_LSFT); }
+  if (mods & MOD_LCTL) { press_code(down, KC_LCTL); }
+  if (mods & MOD_LALT) { press_code(down, KC_LALT); }
+  if (mods & MOD_LGUI) { press_code(down, KC_LGUI); }
 }
 
 void print_code(uint16_t code) {
