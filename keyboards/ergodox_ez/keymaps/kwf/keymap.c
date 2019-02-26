@@ -24,10 +24,12 @@ enum custom_keycodes {
   BANG,    // '!' and '`'
   QUES,    // '?' and '~'
 
-  DF_ENTER,  // ENTER, hold for CMD
+  DF_ENT,    // ENTER, hold for CMD
   DF_TAB,    // TAB, hold for ALT
   DF_ESC,    // ESC, hold for SHIFT
 };
+
+#define DUAL_KEY_TIMEOUT 300
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
@@ -42,7 +44,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                                               KC_LCTL,
                                             DF_ESC,  DF_ENT,  KC_LALT,
 
-        XXXXXXX, KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    REPORT,
+        XXXXXXX, KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    XXXXXXX,
         QUES,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    RPAREN,
                  KC_H,    KC_J,    KC_K,    KC_L,    ATSIGN,  SLASH,
         COMMA,   KC_N,    KC_M,    CARET,   DOLLAR,  KC_UP,   RANGLE,
@@ -178,18 +180,20 @@ bool capitalized(uint16_t cap_code,
 bool mod_tap_key(uint16_t dual_code,
                  uint16_t mod_keycode,
                  uint16_t tap_keycode,
-                 bool *flag,
+                 bool *tap_on_up,
                  uint16_t keycode,
                  keyrecord_t *record) {
+  static uint16_t key_timer;
   if (keycode == dual_code) {
     if (record->event.pressed) {
       // Put down the mod key
       register_code(mod_keycode);
-      *flag = true;
+      *tap_on_up = true;
+      key_timer = timer_read();
     } else {
       // Release the mod key
       unregister_code(mod_keycode);
-      if (*flag) {
+      if (*tap_on_up && timer_elapsed(key_timer) < DUAL_KEY_TIMEOUT) {
         // Tap the tap key
         register_code(tap_keycode);
         unregister_code(tap_keycode);
@@ -197,7 +201,7 @@ bool mod_tap_key(uint16_t dual_code,
     }
     return true;
   } else {
-    *flag = false;
+    *tap_on_up = false;
     return false;
   }
 }
@@ -208,26 +212,25 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   static bool shift_down = false;
   track_key(DF_ESC, &shift_down, keycode, record);
 
-  // Keep track of whether to release particular keys for dual-function keys
   static bool ent_on_up = false;
   static bool tab_on_up = false;
   static bool esc_on_up = false;
 
   bool match
-     = mod_tap_key(DF_ENTER, KC_LGUI, KC_ENT, &ent_on_up, keycode, record)
-    || mod_tap_key(DF_TAB,   KC_LALT, KC_TAB, &tab_on_up, keycode, record)
-    || mod_tap_key(DF_ESC,   KC_LSFT, KC_ESC, &esc_on_up, keycode, record)
-    || capitalized(PERIOD,   '.',     ':',    shift_down, keycode, record)
-    || capitalized(COMMA,    ',',     ';',    shift_down, keycode, record)
-    || capitalized(BANG,     '!',     '`',    shift_down, keycode, record)
-    || capitalized(QUES,     '?',     '~',    shift_down, keycode, record)
-    || capitalized(LPAREN,   '(',     '[',    shift_down, keycode, record)
-    || capitalized(RPAREN,   ')',     ']',    shift_down, keycode, record)
-    || capitalized(LANGLE,   '<',     '{',    shift_down, keycode, record)
-    || capitalized(RANGLE,   '>',     '}',    shift_down, keycode, record)
-    || capitalized(ATSIGN,   '@',     '#',    shift_down, keycode, record)
-    || capitalized(CARET,    '^',     '&',    shift_down, keycode, record)
-    || capitalized(DOLLAR,   '$',     '*',    shift_down, keycode, record)
+     = mod_tap_key(DF_ENT, KC_LGUI, KC_ENT, &ent_on_up, keycode, record)
+    || mod_tap_key(DF_TAB, KC_LALT, KC_TAB, &tab_on_up, keycode, record)
+    || mod_tap_key(DF_ESC, KC_LSFT, KC_ESC, &esc_on_up, keycode, record)
+    || capitalized(PERIOD, '.',     ':',    shift_down, keycode, record)
+    || capitalized(COMMA,  ',',     ';',    shift_down, keycode, record)
+    || capitalized(BANG,   '!',     '`',    shift_down, keycode, record)
+    || capitalized(QUES,   '?',     '~',    shift_down, keycode, record)
+    || capitalized(LPAREN, '(',     '[',    shift_down, keycode, record)
+    || capitalized(RPAREN, ')',     ']',    shift_down, keycode, record)
+    || capitalized(LANGLE, '<',     '{',    shift_down, keycode, record)
+    || capitalized(RANGLE, '>',     '}',    shift_down, keycode, record)
+    || capitalized(ATSIGN, '@',     '#',    shift_down, keycode, record)
+    || capitalized(CARET,  '^',     '&',    shift_down, keycode, record)
+    || capitalized(DOLLAR, '$',     '*',    shift_down, keycode, record)
     ;
 
   // Extra modifiers aren't (yet) supported by the 'capitalized' function,
