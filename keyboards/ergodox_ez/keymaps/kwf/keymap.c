@@ -43,8 +43,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         XXXXXXX, XXXXXXX, XXXXXXX, KC_EQL,  KC_QUOT,
 
                                                      TT(1),   KC_LSFT,
-                                                              KC_LCTL,
-                                            DF_ESC,  DF_ENT,  KC_LALT,
+                                                              DF_CMD_ENT,
+                                            DF_ESC,  DF_ENT,  DF_SFT_ENT,
 
         XXXXXXX, KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    XXXXXXX,
         QUES,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    RPAREN,
@@ -173,14 +173,36 @@ bool capitalized(uint16_t cap_code,
   }
 }
 
+void press_code(bool down, uint16_t keycode) {
+  if (down) {
+    register_code(keycode);
+  } else {
+    unregister_code(keycode);
+  }
+}
+
+void tap_code(uint16_t keycode) {
+  press_code(true, keycode);
+  press_code(false, keycode);
+}
+
+void press_mods(bool down, uint16_t mods) {
+  if (mods & MOD_LSFT) { press_code(down, KC_LSFT); }
+  if (mods & MOD_LCTL) { press_code(down, KC_LCTL); }
+  if (mods & MOD_LALT) { press_code(down, KC_LALT); }
+  if (mods & MOD_LGUI) { press_code(down, KC_LGUI); }
+}
+
 // Sets up a "flexible" dual-function key, returns whether the keyrecord matched
 // A tap on enter sends ENTER, but it's also a normal command key This works
 // better than the built-in mod-tap functionality
 // <https://docs.qmk.fm/#/feature_advanced_keycodes?id=mod-tap> because it
 // allows quick DOWN(ENTER), DOWN(key), UP(ENTER), UP(key) interleaving, which
-// is often something my typing produces when I'm going fast.
+// is often something my typing produces when I'm going fast. Currently only
+// supports one possible mod to press while pressing release-key.
 bool mod_tap_key(uint16_t dual_code,
                  uint16_t mod_keycode,
+                 uint16_t tap_mods,
                  uint16_t tap_keycode,
                  bool *tap_on_up,
                  uint16_t keycode,
@@ -197,8 +219,9 @@ bool mod_tap_key(uint16_t dual_code,
       unregister_code(mod_keycode);
       if (*tap_on_up && timer_elapsed(key_timer) < DUAL_KEY_TIMEOUT) {
         // Tap the tap key
-        register_code(tap_keycode);
-        unregister_code(tap_keycode);
+        press_mods(true, tap_mods);
+        tap_code(tap_keycode);
+        press_mods(false, tap_mods);
       }
     }
     return true;
@@ -217,11 +240,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   static bool ent_on_up = false;
   static bool tab_on_up = false;
   static bool esc_on_up = false;
+  static bool sft_ent_on_up = false;
+  static bool cmd_ent_on_up = false;
 
   bool match
-     = mod_tap_key(DF_ENT, KC_LGUI, KC_ENT, &ent_on_up, keycode, record)
-    || mod_tap_key(DF_TAB, KC_LALT, KC_TAB, &tab_on_up, keycode, record)
-    || mod_tap_key(DF_ESC, KC_LSFT, KC_ESC, &esc_on_up, keycode, record)
+     = mod_tap_key(DF_ENT, KC_LGUI, 0, KC_ENT, &ent_on_up, keycode, record)
+    || mod_tap_key(DF_TAB, KC_LALT, 0, KC_TAB, &tab_on_up, keycode, record)
+    || mod_tap_key(DF_ESC, KC_LSFT, 0, KC_ESC, &esc_on_up, keycode, record)
+    || mod_tap_key(DF_SFT_ENT, KC_LALT, MOD_LSFT, KC_ENT, &sft_ent_on_up, keycode, record)
+    || mod_tap_key(DF_CMD_ENT, KC_LCTL, MOD_LGUI, KC_ENT, &cmd_ent_on_up, keycode, record)
     || capitalized(PERIOD, '.',     ':',    shift_down, keycode, record)
     || capitalized(COMMA,  ',',     ';',    shift_down, keycode, record)
     || capitalized(BANG,   '!',     '`',    shift_down, keycode, record)
@@ -251,7 +278,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
   }
 
+  /* (void) match; */
   return !match; // If none of our custom processing fired, defer to system
+  /* return true; */
 }
 
 uint32_t layer_state_set_user(uint32_t state) {
