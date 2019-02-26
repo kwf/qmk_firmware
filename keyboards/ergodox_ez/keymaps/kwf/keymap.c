@@ -27,6 +27,8 @@ enum custom_keycodes {
   DF_ENT,    // ENTER, hold for CMD
   DF_TAB,    // TAB, hold for ALT
   DF_ESC,    // ESC, hold for SHIFT
+  DF_CMD_ENT,  // CMD+ENTER, hold for CTL
+  DF_SFT_ENT,  // SFT+ENTER, hold for ALT
 };
 
 #define DUAL_KEY_TIMEOUT 300
