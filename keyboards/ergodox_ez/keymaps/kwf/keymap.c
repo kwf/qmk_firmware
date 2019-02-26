@@ -84,7 +84,8 @@ enum custom_keycodes {
 static toggle_key_t TOGGLE_KEYS[] =
   { SHIFT_KEY(PERIOD, 0, KC_DOT, MOD_LSFT, KC_SCLN) };
 
-static dual_key_t DUAL_KEYS[] = { };
+static dual_key_t DUAL_KEYS[] =
+  { SHIFT_DUAL_KEY(DF_ESC, KC_LSFT, 0, KC_ESC, 0, KC_ESC) };
 
 const int NUM_TOGGLE_KEYS = sizeof(TOGGLE_KEYS) / sizeof(toggle_key_t);
 const int NUM_DUAL_KEYS   = sizeof(DUAL_KEYS)   / sizeof(dual_key_t);
@@ -285,11 +286,11 @@ uint16_t mod_for_code(uint16_t current_mods, uint16_t keycode) {
   for (int i = 0; i < NUM_DUAL_KEYS; i++) {
     dual_key_t key = DUAL_KEYS[i];
     if (keycode == key.input_code) {
-      bool hi_state = superset(current_mods, key.toggle_mods);
-      mods |= (hi_state ? key.hi_mods : key.lo_mods);
+      mods = key.hold_mods;
+      break;
     }
   }
-  return mod;
+  return mods;
 }
 
 void press_mods(bool down, uint16_t mods) {
@@ -357,23 +358,44 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   static bool shift_down = false;
   track_key(DF_ESC, &shift_down, keycode, record);
 
+  // Determine whether we have processed this key, or whether to send it down
+  bool match = false;
+
   // Track which modifiers are currently down
   // Currently doesn't work with dual-function keys that map to mods
   static uint16_t current_mods = 0;
-  uint16_t mod_update = mod_for_code(keycode);
-  if (record->event.pressed) {
-    current_mods |= mod_update;
-  } else {
-    current_mods &= ~mod_update;
-  }
+
+  uint16_t mod_update = mod_for_code(current_mods, keycode);
   if (mod_update) {
+    match = true;  // we matched some mod key
+    uint16_t old_mods = current_mods;
+    uint16_t new_mods;
     if (record->event.pressed) {
-      press_mods(false, current_mods);
-      report_mods(current_mods);
-      /* print_code(current_mods); */
-      press_mods(true, current_mods);
+      new_mods = old_mods | mod_update;
+    } else {
+      new_mods = old_mods & ~mod_update;
     }
-    // TODO: loop over all mask keys, adjusting their pressed codes and such
+    // apply the mod update
+    transition_mods(&current_mods, new_mods);
+    // update which codes for toggle keys are registered
+    // NOTE: this may undo some of the mods set by mod_update; this is correct
+    for (int i = 0; i < NUM_TOGGLE_KEYS; i++) {
+      toggle_key_t key = TOGGLE_KEYS[i];
+      if (key.pressed) {
+        bool was_hi = superset(old_mods, key.toggle_mods);
+        bool is_hi  = superset(new_mods, key.toggle_mods);
+        if (was_hi && !is_hi) {
+          unregister_code(key.hi_code);
+          transition_mods(&current_mods, key.lo_mods);
+          register_code(key.lo_code);
+        }
+        if (!was_hi && is_hi) {
+          unregister_code(key.lo_code);
+          transition_mods(&current_mods, key.hi_mods);
+          register_code(key.hi_code);
+        }
+      }
+    }
   }
 
   // Keep track of whether to release particular keys for dual-function keys
@@ -381,7 +403,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   static bool tab_on_up = false;
   static bool esc_on_up = false;
 
-  bool match
+  match
      = mod_tap_key(DF_ENT, KC_LGUI, KC_ENT, &ent_on_up, keycode, record)
     || mod_tap_key(DF_TAB, KC_LALT, KC_TAB, &tab_on_up, keycode, record)
     || mod_tap_key(DF_ESC, KC_LSFT, KC_ESC, &esc_on_up, keycode, record)
@@ -417,6 +439,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         // if current_mods doesn't contain toggle_mods
         press_code(record->event.pressed, key.lo_code);
       }
+      key.pressed = record->event.pressed;
     }
   }
 
