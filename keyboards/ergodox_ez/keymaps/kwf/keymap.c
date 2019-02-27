@@ -109,6 +109,29 @@ uint16_t char_code(char ascii_code) {
   return pgm_read_byte(&ascii_to_keycode_lut[(uint8_t)ascii_code]);
 }
 
+// Press a keycode (true = press down, false = release)
+void press_code(bool down, uint16_t keycode) {
+  if (down) {
+    register_code(keycode);
+  } else {
+    unregister_code(keycode);
+  }
+}
+
+// Tap a keycode (press and immediately release)
+void tap_code(uint16_t keycode) {
+  press_code(true, keycode);
+  press_code(false, keycode);
+}
+
+// Press (or release) the modifier keys corresponding to the mods specified
+void press_mods(bool down, uint16_t mods) {
+  if (mods & MOD_LSFT) { press_code(down, KC_LSFT); }
+  if (mods & MOD_LCTL) { press_code(down, KC_LCTL); }
+  if (mods & MOD_LALT) { press_code(down, KC_LALT); }
+  if (mods & MOD_LGUI) { press_code(down, KC_LGUI); }
+}
+
 // Presses (or un-presses) the keycode corresponding to an ASCII character,
 // including shift if necessary (to achieve the right effect).
 // This function is a decomposition of the functionality of send_char (in the
@@ -151,46 +174,30 @@ void press_char(bool shift_down, bool press, char ascii_code) {
 
 // Sends a down/up-stroke including shift if shift was pressed
 bool capitalized(uint16_t cap_code,
-                 char no,
-                 char yes,
+                 uint16_t lo_mods,
+                 char lo,
+                 uint16_t hi_mods,
+                 char hi,
                  bool shift_down,
                  uint16_t keycode,
                  keyrecord_t *record) {
   if (keycode == cap_code) {
     // Press or unpress at the right shift level
     if (record->event.pressed) {
-      press_char(shift_down, true, shift_down ? yes : no);
+      press_mods(true, shift_down ? hi_mods : lo_mods);
+      press_char(shift_down, true, shift_down ? hi : lo);
     } else {
       // But if unpress, unpress both
       // This prevents a stuck-key bug that happened with the sequence
       // shift down, key down, shift up, key up
-      press_char(shift_down, false, yes);
-      press_char(shift_down, false, no);
+      press_char(shift_down, false, hi);
+      press_char(shift_down, false, lo);
+      press_mods(false, hi_mods | lo_mods);
     }
     return true;
   } else {
     return false;
   }
-}
-
-void press_code(bool down, uint16_t keycode) {
-  if (down) {
-    register_code(keycode);
-  } else {
-    unregister_code(keycode);
-  }
-}
-
-void tap_code(uint16_t keycode) {
-  press_code(true, keycode);
-  press_code(false, keycode);
-}
-
-void press_mods(bool down, uint16_t mods) {
-  if (mods & MOD_LSFT) { press_code(down, KC_LSFT); }
-  if (mods & MOD_LCTL) { press_code(down, KC_LCTL); }
-  if (mods & MOD_LALT) { press_code(down, KC_LALT); }
-  if (mods & MOD_LGUI) { press_code(down, KC_LGUI); }
 }
 
 // Sets up a "flexible" dual-function key, returns whether the keyrecord matched
@@ -244,43 +251,28 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   static bool cmd_ent_on_up = false;
 
   bool match
-     = mod_tap_key(DF_ENT, KC_LGUI, 0, KC_ENT, &ent_on_up, keycode, record)
-    || mod_tap_key(DF_TAB, KC_LALT, 0, KC_TAB, &tab_on_up, keycode, record)
-    || mod_tap_key(DF_ESC, KC_LSFT, 0, KC_ESC, &esc_on_up, keycode, record)
+    // mod-tap keys must come first, in case they press shift
+    =  mod_tap_key(DF_ENT,     KC_LGUI, 0,        KC_ENT, &ent_on_up,     keycode, record)
+    || mod_tap_key(DF_TAB,     KC_LALT, 0,        KC_TAB, &tab_on_up,     keycode, record)
+    || mod_tap_key(DF_ESC,     KC_LSFT, 0,        KC_ESC, &esc_on_up,     keycode, record)
     || mod_tap_key(DF_SFT_ENT, KC_LALT, MOD_LSFT, KC_ENT, &sft_ent_on_up, keycode, record)
     || mod_tap_key(DF_CMD_ENT, KC_LCTL, MOD_LGUI, KC_ENT, &cmd_ent_on_up, keycode, record)
-    || capitalized(PERIOD, '.',     ':',    shift_down, keycode, record)
-    || capitalized(COMMA,  ',',     ';',    shift_down, keycode, record)
-    || capitalized(BANG,   '!',     '`',    shift_down, keycode, record)
-    || capitalized(QUES,   '?',     '~',    shift_down, keycode, record)
-    || capitalized(LPAREN, '(',     '[',    shift_down, keycode, record)
-    || capitalized(RPAREN, ')',     ']',    shift_down, keycode, record)
-    || capitalized(LANGLE, '<',     '{',    shift_down, keycode, record)
-    || capitalized(RANGLE, '>',     '}',    shift_down, keycode, record)
-    || capitalized(ATSIGN, '@',     '#',    shift_down, keycode, record)
-    || capitalized(CARET,  '^',     '&',    shift_down, keycode, record)
-    || capitalized(DOLLAR, '$',     '*',    shift_down, keycode, record)
+    // capitalized keys must come second, since they might rely on a mod-tap shift
+    || capitalized(PERIOD, 0, '.', 0, ':', shift_down, keycode, record)
+    || capitalized(COMMA,  0, ',', 0, ';', shift_down, keycode, record)
+    || capitalized(BANG,   0, '!', 0, '`', shift_down, keycode, record)
+    || capitalized(QUES,   0, '?', 0, '~', shift_down, keycode, record)
+    || capitalized(LPAREN, 0, '(', 0, '[', shift_down, keycode, record)
+    || capitalized(RPAREN, 0, ')', 0, ']', shift_down, keycode, record)
+    || capitalized(LANGLE, 0, '<', 0, '{', shift_down, keycode, record)
+    || capitalized(RANGLE, 0, '>', 0, '}', shift_down, keycode, record)
+    || capitalized(ATSIGN, 0, '@', 0, '#', shift_down, keycode, record)
+    || capitalized(CARET,  0, '^', 0, '&', shift_down, keycode, record)
+    || capitalized(DOLLAR, 0, '$', 0, '*', shift_down, keycode, record)
+    || capitalized(SLASH,  0, '/', MOD_LALT | MOD_LSFT, '_', shift_down, keycode, record)
     ;
 
-  // Extra modifiers aren't (yet) supported by the 'capitalized' function,
-  // which means it's tricky to get key-repeat for em-dash. We punt on this
-  // and don't give it repeat behavior.
-  if (keycode == SLASH) {
-    match = true;
-    if (record->event.pressed) {
-      if (!shift_down) {
-        SEND_STRING("/");
-      } else {
-        // em-dash
-        SEND_STRING(SS_DOWN(X_LSHIFT)); // don't lift shift, let user do that
-        SEND_STRING(SS_LALT("-"));
-      }
-    }
-  }
-
-  /* (void) match; */
   return !match; // If none of our custom processing fired, defer to system
-  /* return true; */
 }
 
 uint32_t layer_state_set_user(uint32_t state) {
