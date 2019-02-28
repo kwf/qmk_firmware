@@ -23,9 +23,10 @@ enum custom_keycodes {
   COMMA,   // ',' and ';'
   BANG,    // '!' and '`'
   QUES,    // '?' and '~'
+  PERCENT, // '%'
 
   DF_ENT,    // ENTER, hold for CMD
-  DF_TAB,    // TAB, hold for ALT
+  DF_TAB,    // TAB, hold for SHIFT
   DF_ESC,    // ESC, hold for SHIFT
   DF_CMD_ENT,  // CMD+ENTER, hold for CTL
   DF_SFT_ENT,  // SFT+ENTER, hold for ALT
@@ -40,38 +41,38 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         LPAREN,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    BANG,
         KC_BSLS, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,
         LANGLE,  KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    PERIOD,
-        XXXXXXX, XXXXXXX, XXXXXXX, KC_EQL,  KC_QUOT,
+        XXXXXXX, XXXXXXX, XXXXXXX, KC_EQL,  LT(1, KC_QUOT),
 
-                                                     TT(1),   KC_LSFT,
+                                                     XXXXXXX, XXXXXXX,
                                                               DF_CMD_ENT,
                                             DF_ESC,  DF_ENT,  DF_SFT_ENT,
 
         XXXXXXX, KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    XXXXXXX,
         QUES,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    RPAREN,
                  KC_H,    KC_J,    KC_K,    KC_L,    ATSIGN,  SLASH,
-        COMMA,   KC_N,    KC_M,    CARET,   DOLLAR,  KC_UP,   RANGLE,
-                          KC_MINS, KC_GRV,  KC_LEFT, KC_DOWN, KC_RGHT,
+        COMMA,   KC_N,    KC_M,    CARET,   DOLLAR,  PERCENT, RANGLE,
+                          KC_MINS, KC_GRV,  XXXXXXX, XXXXXXX, XXXXXXX,
 
-        KC_LSFT, TT(1),
+        XXXXXXX, XXXXXXX,
         KC_LCTL,
-        DF_TAB, KC_BSPC,  KC_SPC),
+        DF_TAB,  KC_BSPC, KC_SPC),
 
   [1] = LAYOUT_ergodox(
-        XXXXXXX, KC_1,    KC_2,    KC_3,    KC_BTN2, KC_BTN1, KC_BTN3,
-        XXXXXXX, KC_4,    KC_5,    KC_6,    XXXXXXX, KC_ACL0, KC_WH_D,
-        XXXXXXX, KC_7,    KC_8,    KC_9,    XXXXXXX, KC_ACL1,
-        XXXXXXX, KC_KP_0, KC_0,    KC_PDOT, XXXXXXX, KC_ACL2, KC_WH_U,
-        RGB_TOG, RGB_VAD, RGB_VAI, RGB_HUD, RGB_HUI,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, KC_BTN3, KC_BTN2, KC_BTN1, XXXXXXX, XXXXXXX,
+        XXXXXXX, KC_LCTL, KC_LSFT, KC_LALT, KC_LGUI, XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
 
                                                      TO(0),   _______,
                                                               _______,
                                            _______,  _______, _______,
 
-        KC_BTN3, KC_BTN1, KC_BTN2, XXXXXXX, XXXXXXX, XXXXXXX, KC_MPLY,
-        KC_WH_D, KC_MS_L, KC_MS_D, KC_MS_U, KC_MS_R, XXXXXXX, XXXXXXX,
-                 KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, XXXXXXX, XXXXXXX,
-        KC_WH_U, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_VOLU, XXXXXXX,
-                          XXXXXXX, XXXXXXX, KC_MPRV, KC_VOLD, KC_MNXT,
+        XXXXXXX, XXXXXXX, KC_WH_U, KC_WH_D, XXXXXXX, XXXXXXX, KC_MPLY,
+        XXXXXXX, KC_MS_L, KC_MS_D, KC_MS_U, KC_MS_R, XXXXXXX, KC_VOLU,
+                 KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, XXXXXXX, KC_VOLD,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_MNXT,
+                          XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_MPRV,
 
         _______, TO(0),
         _______,
@@ -253,7 +254,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   bool match
     // mod-tap keys must come first, in case they press shift
     =  mod_tap_key(DF_ENT,     KC_LGUI, 0,        KC_ENT, &ent_on_up,     keycode, record)
-    || mod_tap_key(DF_TAB,     KC_LALT, 0,        KC_TAB, &tab_on_up,     keycode, record)
+    || mod_tap_key(DF_TAB,     KC_LSFT, 0,        KC_TAB, &tab_on_up,     keycode, record)
     || mod_tap_key(DF_ESC,     KC_LSFT, 0,        KC_ESC, &esc_on_up,     keycode, record)
     || mod_tap_key(DF_SFT_ENT, KC_LALT, MOD_LSFT, KC_ENT, &sft_ent_on_up, keycode, record)
     || mod_tap_key(DF_CMD_ENT, KC_LCTL, MOD_LGUI, KC_ENT, &cmd_ent_on_up, keycode, record)
@@ -270,6 +271,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     || capitalized(CARET,  0, '^', 0, '&', shift_down, keycode, record)
     || capitalized(DOLLAR, 0, '$', 0, '*', shift_down, keycode, record)
     || capitalized(SLASH,  0, '/', MOD_LALT | MOD_LSFT, '_', shift_down, keycode, record)
+    || capitalized(PERCENT, 0, '%', 0, '%', shift_down, keycode, record)
     ;
 
   return !match; // If none of our custom processing fired, defer to system
