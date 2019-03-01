@@ -16,12 +16,13 @@ enum custom_keycodes {
   RANGLE,  // '>' and '}'
   SLASH,   // '/' and (em-dash)
   ATSIGN,  // '@' and '#'
-  ANDSIGN, // '&' and '*'
+  CARET,   // '^' and '&'
+  DOLLAR,  // '$' and '*'
 
   PERIOD,  // '.' and ':'
   COMMA,   // ',' and ';'
-  BANG,    // '!' and '^'
-  QUES,    // '?' and '$'
+  BANG,    // '!' and '`'
+  QUES,    // '?' and '~'
 
   DF_ENT,    // ENTER, hold for CMD
   DF_TAB,    // TAB, hold for ALT
@@ -39,7 +40,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         LPAREN,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    BANG,
         KC_BSLS, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,
         LANGLE,  KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    PERIOD,
-        XXXXXXX, XXXXXXX, KC_UP,   KC_DOWN, KC_QUOT,
+        XXXXXXX, XXXXXXX, XXXXXXX, KC_EQL,  KC_QUOT,
 
                                                      TT(1),   KC_LSFT,
                                                               DF_CMD_ENT,
@@ -48,8 +49,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         XXXXXXX, KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    XXXXXXX,
         QUES,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    RPAREN,
                  KC_H,    KC_J,    KC_K,    KC_L,    ATSIGN,  SLASH,
-        COMMA,   KC_N,    KC_M,    KC_EQL,  ANDSIGN, KC_GRV,  RANGLE,
-                          KC_MINS, KC_LEFT, KC_RGHT, XXXXXXX, XXXXXXX,
+        COMMA,   KC_N,    KC_M,    CARET,   DOLLAR,  KC_GRV,  RANGLE,
+                          KC_MINS, KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT,
 
         KC_LSFT, TT(1),
         KC_LCTL,
@@ -141,9 +142,13 @@ void press_char(bool shift_down, bool press, char ascii_code) {
   // if pressing the key, set shift appropriately
   if (press) {
     if (is_shifted_char(ascii_code)) {
-      register_code(shift);
+      if (!shift_down) {
+        register_code(shift);
+      }
     } else {
-      unregister_code(shift);
+      if (shift_down) {
+        unregister_code(shift);
+      }
     }
   }
   // actually press/unpress the key
@@ -155,10 +160,14 @@ void press_char(bool shift_down, bool press, char ascii_code) {
   }
   // if unpressing the key, unset shift appropriately
   if (!press) {
-    if (shift_down) {
-      register_code(shift);
+    if (is_shifted_char(ascii_code)) {
+      if (!shift_down) {
+        unregister_code(shift);
+      }
     } else {
-      unregister_code(shift);
+      if (shift_down) {
+        register_code(shift);
+      }
     }
   }
 }
@@ -249,17 +258,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     || mod_tap_key(DF_SFT_ENT, KC_LALT, MOD_LSFT, KC_ENT, &sft_ent_on_up, keycode, record)
     || mod_tap_key(DF_CMD_ENT, KC_LCTL, MOD_LGUI, KC_ENT, &cmd_ent_on_up, keycode, record)
     // capitalized keys must come second, since they might rely on a mod-tap shift
-    || capitalized(PERIOD,  0, '.', 0, ':', shift_down, keycode, record)
-    || capitalized(COMMA,   0, ',', 0, ';', shift_down, keycode, record)
-    || capitalized(BANG,    0, '!', 0, '^', shift_down, keycode, record)
-    || capitalized(QUES,    0, '?', 0, '$', shift_down, keycode, record)
-    || capitalized(LPAREN,  0, '(', 0, '[', shift_down, keycode, record)
-    || capitalized(RPAREN,  0, ')', 0, ']', shift_down, keycode, record)
-    || capitalized(LANGLE,  0, '<', 0, '{', shift_down, keycode, record)
-    || capitalized(RANGLE,  0, '>', 0, '}', shift_down, keycode, record)
-    || capitalized(ATSIGN,  0, '@', 0, '#', shift_down, keycode, record)
-    || capitalized(ANDSIGN, 0, '&', 0, '*', shift_down, keycode, record)
-    || capitalized(SLASH,   0, '/', MOD_LALT | MOD_LSFT, '_', shift_down, keycode, record)
+    || capitalized(PERIOD, 0, '.', 0, ':', shift_down, keycode, record)
+    || capitalized(COMMA,  0, ',', 0, ';', shift_down, keycode, record)
+    || capitalized(BANG,   0, '!', 0, '`', shift_down, keycode, record)
+    || capitalized(QUES,   0, '?', 0, '~', shift_down, keycode, record)
+    || capitalized(LPAREN, 0, '(', 0, '[', shift_down, keycode, record)
+    || capitalized(RPAREN, 0, ')', 0, ']', shift_down, keycode, record)
+    || capitalized(LANGLE, 0, '<', 0, '{', shift_down, keycode, record)
+    || capitalized(RANGLE, 0, '>', 0, '}', shift_down, keycode, record)
+    || capitalized(ATSIGN, 0, '@', 0, '#', shift_down, keycode, record)
+    || capitalized(CARET,  0, '^', 0, '&', shift_down, keycode, record)
+    || capitalized(DOLLAR, 0, '$', 0, '*', shift_down, keycode, record)
+    || capitalized(SLASH,  0, '/', MOD_LALT | MOD_LSFT, '_', shift_down, keycode, record)
     ;
 
   return !match; // If none of our custom processing fired, defer to system
