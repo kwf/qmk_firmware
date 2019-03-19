@@ -269,7 +269,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     || capitalized(ATSIGN, 0, '@', 0, '#', shift_down, keycode, record)
     || capitalized(CARET,  0, '^', 0, '&', shift_down, keycode, record)
     || capitalized(DOLLAR, 0, '$', 0, '*', shift_down, keycode, record)
-    || capitalized(SLASH,  0, '/', MOD_LALT | MOD_LSFT, '_', shift_down, keycode, record)
+    || capitalized(SLASH,  0, '/', MOD_LALT, '_', shift_down, keycode, record)
     ;
 
   return !match; // If none of our custom processing fired, defer to system
