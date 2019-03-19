@@ -240,35 +240,35 @@ bool mod_tap_key(uint16_t dual_code,
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
-  // Keep track of whether shift is currently pressed
+  // Keep track of whether shift is currently pressed:
   static bool shift_down = false;
   track_key(DF_ESC, &shift_down, keycode, record);
 
-  static bool ent_on_up = false;
-  static bool tab_on_up = false;
-  static bool esc_on_up = false;
-  static bool sft_ent_on_up = false;
-  static bool cmd_ent_on_up = false;
+  // Track whether each dual-function key should send a tap on release
+  // Each dual-function key corresponds to one index in this array:
+  static bool duals[5] = { false, false, false, false, false };
 
   bool match
-    // mod-tap keys must come first, in case they press shift
-    =  mod_tap_key(DF_ENT,     KC_LGUI, 0,        KC_ENT, &ent_on_up,     keycode, record)
-    || mod_tap_key(DF_TAB,     KC_LALT, 0,        KC_TAB, &tab_on_up,     keycode, record)
-    || mod_tap_key(DF_ESC,     KC_LSFT, 0,        KC_ESC, &esc_on_up,     keycode, record)
-    || mod_tap_key(DF_SFT_ENT, KC_LALT, MOD_LSFT, KC_ENT, &sft_ent_on_up, keycode, record)
-    || mod_tap_key(DF_CMD_ENT, KC_LCTL, MOD_LGUI, KC_ENT, &cmd_ent_on_up, keycode, record)
-    // capitalized keys must come second, since they might rely on a mod-tap shift
-    || capitalized(PERIOD, 0, '.', 0, ':', shift_down, keycode, record)
-    || capitalized(COMMA,  0, ',', 0, ';', shift_down, keycode, record)
-    || capitalized(BANG,   0, '!', 0, '`', shift_down, keycode, record)
-    || capitalized(QUES,   0, '?', 0, '~', shift_down, keycode, record)
-    || capitalized(LPAREN, 0, '(', 0, '[', shift_down, keycode, record)
-    || capitalized(RPAREN, 0, ')', 0, ']', shift_down, keycode, record)
-    || capitalized(LANGLE, 0, '<', 0, '{', shift_down, keycode, record)
-    || capitalized(RANGLE, 0, '>', 0, '}', shift_down, keycode, record)
-    || capitalized(ATSIGN, 0, '@', 0, '#', shift_down, keycode, record)
-    || capitalized(CARET,  0, '^', 0, '&', shift_down, keycode, record)
-    || capitalized(DOLLAR, 0, '$', 0, '*', shift_down, keycode, record)
+    // By default, we have not found a match
+    = false
+    // Mod-Tap keys must come first, in case they press shift
+    || mod_tap_key(DF_ENT,     KC_LGUI, 0,        KC_ENT, &duals[0], keycode, record)
+    || mod_tap_key(DF_TAB,     KC_LALT, 0,        KC_TAB, &duals[1], keycode, record)
+    || mod_tap_key(DF_ESC,     KC_LSFT, 0,        KC_ESC, &duals[2], keycode, record)
+    || mod_tap_key(DF_SFT_ENT, KC_LALT, MOD_LSFT, KC_ENT, &duals[3], keycode, record)
+    || mod_tap_key(DF_CMD_ENT, KC_LCTL, MOD_LGUI, KC_ENT, &duals[4], keycode, record)
+    // Capitalized keys must come second, since they might rely on a mod-tap shift
+    || capitalized(PERIOD, 0, '.', 0,        ':', shift_down, keycode, record)
+    || capitalized(COMMA,  0, ',', 0,        ';', shift_down, keycode, record)
+    || capitalized(BANG,   0, '!', 0,        '`', shift_down, keycode, record)
+    || capitalized(QUES,   0, '?', 0,        '~', shift_down, keycode, record)
+    || capitalized(LPAREN, 0, '(', 0,        '[', shift_down, keycode, record)
+    || capitalized(RPAREN, 0, ')', 0,        ']', shift_down, keycode, record)
+    || capitalized(LANGLE, 0, '<', 0,        '{', shift_down, keycode, record)
+    || capitalized(RANGLE, 0, '>', 0,        '}', shift_down, keycode, record)
+    || capitalized(ATSIGN, 0, '@', 0,        '#', shift_down, keycode, record)
+    || capitalized(CARET,  0, '^', 0,        '&', shift_down, keycode, record)
+    || capitalized(DOLLAR, 0, '$', 0,        '*', shift_down, keycode, record)
     || capitalized(SLASH,  0, '/', MOD_LALT, '_', shift_down, keycode, record)
     ;
 
