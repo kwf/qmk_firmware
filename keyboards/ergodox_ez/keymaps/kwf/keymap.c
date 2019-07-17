@@ -75,7 +75,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
         _______, TO(0),
         _______,
-        _______, _______, _______),
+        TO(0),   _______, _______),
 
 };
 
@@ -90,10 +90,14 @@ void matrix_init_user(void) {
 };
 
 // Track whether a key is up or down by updating a boolean variable
-void track_key(uint16_t keycode, bool *flag,
+void track_key(uint16_t keycode, int *flag,
                uint16_t match, keyrecord_t *record) {
     if (keycode == match) {
-        *flag = record->event.pressed;
+      if (record->event.pressed) {
+        *flag = *flag + 1;
+      } else if (*flag > 0) {
+        *flag = *flag - 1;
+      }
     }
 }
 
@@ -240,9 +244,17 @@ bool mod_tap_key(uint16_t dual_code,
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
-  // Keep track of whether shift is currently pressed:
-  static bool shift_down = false;
-  track_key(DF_ESC, &shift_down, keycode, record);
+  // Keep track of modifiers currently pressed:
+  static int shift_down = 0;
+  static int ctrl_down  = 0;
+  static int alt_down   = 0;
+  static int cmd_down   = 0;
+  track_key(DF_ESC,     &shift_down, keycode, record);
+  track_key(DF_CMD_ENT, &ctrl_down,  keycode, record);
+  track_key(KC_LCTL,    &ctrl_down,  keycode, record);
+  track_key(DF_TAB,     &alt_down,   keycode, record);
+  track_key(DF_SFT_ENT, &alt_down,   keycode, record);
+  track_key(DF_ENT,     &cmd_down,   keycode, record);
 
   // Track whether each dual-function key should send a tap on release
   // Each dual-function key corresponds to one index in this array:
@@ -271,6 +283,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     || capitalized(DOLLAR, 0, '$', 0,        '*', shift_down, keycode, record)
     || capitalized(SLASH,  0, '/', MOD_LALT, '_', shift_down, keycode, record)
     ;
+
+  if (shift_down || ctrl_down || alt_down || cmd_down) {
+    switch (keycode) {
+    case KC_MS_L: press_code(record->event.pressed, KC_H); match = true; break;
+    case KC_MS_D: press_code(record->event.pressed, KC_J); match = true; break;
+    case KC_MS_U: press_code(record->event.pressed, KC_K); match = true; break;
+    case KC_MS_R: press_code(record->event.pressed, KC_L); match = true; break;
+    }
+  }
 
   return !match; // If none of our custom processing fired, defer to system
 }
