@@ -57,20 +57,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         DF_TAB, KC_BSPC,  KC_SPC),
 
   [1] = LAYOUT_ergodox(
-        XXXXXXX, KC_1,    KC_2,    KC_3,    KC_BTN2, KC_BTN1, KC_BTN3,
-        XXXXXXX, KC_4,    KC_5,    KC_6,    XXXXXXX, KC_ACL0, KC_WH_D,
+        XXXXXXX, KC_1,    KC_2,    KC_3,    XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, KC_4,    KC_5,    KC_6,    XXXXXXX, KC_ACL0, XXXXXXX,
         XXXXXXX, KC_7,    KC_8,    KC_9,    XXXXXXX, KC_ACL1,
-        XXXXXXX, KC_KP_0, KC_0,    KC_PDOT, XXXXXXX, KC_ACL2, KC_WH_U,
+        XXXXXXX, KC_KP_0, KC_0,    KC_PDOT, XXXXXXX, KC_ACL2, XXXXXXX,
         RGB_TOG, RGB_VAD, RGB_VAI, RGB_HUD, RGB_HUI,
 
                                                      TO(0),   _______,
                                                               _______,
                                            _______,  _______, _______,
 
-        KC_BTN3, KC_BTN1, KC_BTN2, XXXXXXX, XXXXXXX, XXXXXXX, KC_MPLY,
-        KC_WH_D, KC_MS_L, KC_MS_D, KC_MS_U, KC_MS_R, XXXXXXX, XXXXXXX,
-                 KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, XXXXXXX, XXXXXXX,
-        KC_WH_U, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_VOLU, XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_MPLY,
+        KC_WH_D, KC_BTN1, KC_BTN2, KC_BTN3, XXXXXXX, XXXXXXX, XXXXXXX,
+                 KC_MS_L, KC_MS_D, KC_MS_U, KC_MS_R, XXXXXXX, XXXXXXX,
+        KC_WH_U, KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_VOLU, XXXXXXX,
                           XXXXXXX, XXXXXXX, KC_MPRV, KC_VOLD, KC_MNXT,
 
         _______, TO(0),
