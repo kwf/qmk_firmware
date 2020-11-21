@@ -40,7 +40,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         LPAREN,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    BANG,
         KC_BSLS, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,
         LANGLE,  KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    PERIOD,
-        XXXXXXX, XXXXXXX, XXXXXXX, KC_EQL,  KC_QUOT,
+        MO(2),   XXXXXXX, XXXXXXX, KC_EQL,  KC_QUOT,
 
                                                      TT(1),   KC_LSFT,
                                                               DF_CMD_ENT,
@@ -54,7 +54,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
         KC_LSFT, TT(1),
         KC_LCTL,
-        DF_TAB, KC_BSPC,  KC_SPC),
+        KC_TAB, KC_BSPC,  KC_SPC),
 
   [1] = LAYOUT_ergodox(
         XXXXXXX, KC_1,    KC_2,    KC_3,    XXXXXXX, XXXXXXX, XXXXXXX,
@@ -75,7 +75,28 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
         _______, TO(0),
         _______,
-        TO(0),   _______, _______),
+        TO(0),   KC_DEL, _______),
+
+  [2] = LAYOUT_ergodox(
+        XXXXXXX, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   XXXXXXX,
+        XXXXXXX, KC_F11,  KC_F12,  KC_F13,  KC_F14,  KC_F15,  XXXXXXX,
+	XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+
+	                                             TO(0),   XXXXXXX,
+                                                              XXXXXXX,
+                                            XXXXXXX, XXXXXXX, XXXXXXX,
+
+        XXXXXXX, KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  XXXXXXX,
+        XXXXXXX, KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+
+	XXXXXXX, XXXXXXX,
+	XXXXXXX,
+	XXXXXXX, XXXXXXX, XXXXXXX),
 
 };
 
